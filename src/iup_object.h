@@ -69,6 +69,19 @@ typedef struct _GtkWidget InativeHandle;
 typedef struct _WidgetRec InativeHandle;
 #elif defined(WINVER)
 typedef struct HWND__ InativeHandle;
+#elif defined(__ANDROID__)
+//#include <jni.h>
+/*
+Problem: The usage of InativeHandle always appends a '*'.
+jobject already includes the pointer and I don't want a double pointer.
+Use _jobject instead.
+*/
+struct _jobject;
+typedef struct _jobject InativeHandle;
+/*
+struct AndroidHandleWrapper;
+typedef struct AndroidHandleWrapper InativeHandle;
+*/
 #else
 typedef struct _InativeHandle InativeHandle;
 #endif

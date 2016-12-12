@@ -1593,8 +1593,12 @@ static char* iStrSetLocale(const char* decimal_symbol)
 {
   if (decimal_symbol)
   {
+#ifdef __ANDROID__
+    if ('.' != decimal_symbol[0])
+#else
     struct lconv* locale_info = localeconv();
     if (locale_info->decimal_point[0] != decimal_symbol[0])
+#endif
     {
       char* old_locale = setlocale(LC_NUMERIC, NULL);
 

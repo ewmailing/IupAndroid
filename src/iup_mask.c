@@ -129,9 +129,11 @@ Imask* iupMaskCreateReal(int positive, const char* decimal_symbol)
   }
   else
   {
+#ifndef __ANDROID__
     struct lconv* locale_info = localeconv();
     if (locale_info->decimal_point[0] == ',')
       use_comma = 1;
+#endif
   }
 
   if (use_comma)
