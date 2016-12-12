@@ -1,0 +1,43 @@
+package com.blurrrsdk.app;
+
+import android.content.Context;
+import android.app.Activity;
+import android.view.View;
+import android.os.Bundle;
+//import android.content.res.AssetManager;
+import android.util.Log;
+
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Button;
+
+import android.content.Intent;
+
+
+import br.pucrio.tecgraf.iup.IupLaunchActivity;
+
+public class BlurrrActivity extends IupLaunchActivity
+{
+	/*
+	static
+	{
+		System.loadLibrary("c++_shared");
+		System.loadLibrary("icudataswift");
+		System.loadLibrary("icuucswift");
+		System.loadLibrary("icui18nswift");
+		System.loadLibrary("swiftCore");
+		System.loadLibrary("swiftSwiftOnoneSupport");
+		System.loadLibrary("MySDLMainActivity");
+	}
+*/
+	@Override
+	    protected String[] getLibraries() {
+        return new String[] {
+//			"iup"
+            "MySDLMainActivity",
+        };
+    }
+
+}
+
