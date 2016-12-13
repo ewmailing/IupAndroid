@@ -163,6 +163,10 @@ public class IupApplication extends Application
 		private int pausedCount;
 		private int startedCount;
 		private int stoppedCount;
+		// Since there can be multiple Activities, 
+		// this variable is used to save the last state so we only report 
+		// actual transitions and suppress redundant checks.
+		private boolean savedIsInBackground;
 
 		@Override
 		public void onActivityCreated(Activity activity, Bundle saved_instance_state)
@@ -202,7 +206,8 @@ public class IupApplication extends Application
 			startedCount += 1;
 			android.util.Log.w("onActivityStarted", "application is visible: " + (startedCount > stoppedCount));
 			android.util.Log.w("onActivityStarted", "application is in background: " + isApplicationInBackground());
-			
+			// NOTE: onActivityStarted seems to be the best place to check for isApplicationInBackground (becomes false)
+			checkForBackgroundTransition();
 		}
 
 		@Override
@@ -211,7 +216,8 @@ public class IupApplication extends Application
 			stoppedCount += 1;
 			android.util.Log.w("onActivityStopped", "application is visible: " + (startedCount > stoppedCount));
 			android.util.Log.w("onActivityStopped", "application is in background: " + isApplicationInBackground());
-
+			// NOTE: onActivityStopped seems to be the best place to check for isApplicationInBackground (becomes true)
+			checkForBackgroundTransition();
 		}
 
 		public boolean isApplicationVisible()
@@ -229,6 +235,20 @@ public class IupApplication extends Application
 			return (!isApplicationVisible() && !isApplicationInForeground());
 		}
 
+		// Returns true if there was a transition.
+		private boolean checkForBackgroundTransition()
+		{
+			boolean is_app_in_background = isApplicationInBackground();
+			// We are trying to avoid multiple redundant callbacks since there can be multiple activities.
+			if(is_app_in_background != savedIsInBackground)
+			{
+				savedIsInBackground = is_app_in_background;
+				android.util.Log.w("checkForBackgroundTransition", "Application Background state has transitioned to: " + is_app_in_background);
+				// TODO: Do callback here
+				return true;
+			}
+			return false;
+		}
 
 	}
 
