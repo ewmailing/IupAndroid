@@ -163,6 +163,8 @@ public class IupApplication extends Application
 		private int pausedCount;
 		private int startedCount;
 		private int stoppedCount;
+		private int activityCount;
+		
 		// Since there can be multiple Activities, 
 		// this variable is used to save the last state so we only report 
 		// actual transitions and suppress redundant checks.
@@ -171,11 +173,18 @@ public class IupApplication extends Application
 		@Override
 		public void onActivityCreated(Activity activity, Bundle saved_instance_state)
 		{
+			activityCount += 1;
+			android.util.Log.w("onActivityCreated", "count: " + activityCount);			
 		}
 
 		@Override
 		public void onActivityDestroyed(Activity activity)
 		{
+			activityCount -= 1;
+			android.util.Log.w("onActivityDestroyed", "count: " + activityCount);			
+			// When the activity count goes to 0 here, I think we can infer that the application is quitting.
+			// On my device, isApplicationInBackground() is true and the onActivityStopped transition already occurred.
+			// TODO: Add quit callback here.
 		}
 
 		@Override
@@ -244,7 +253,7 @@ public class IupApplication extends Application
 			{
 				savedIsInBackground = is_app_in_background;
 				android.util.Log.w("checkForBackgroundTransition", "Application Background state has transitioned to: " + is_app_in_background);
-				// TODO: Do callback here
+				// TODO: Do background or resume callback here
 				return true;
 			}
 			return false;
