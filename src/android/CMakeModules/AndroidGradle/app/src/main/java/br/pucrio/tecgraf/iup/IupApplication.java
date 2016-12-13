@@ -2,6 +2,7 @@ package br.pucrio.tecgraf.iup;
 
 
 import android.app.Application;
+import android.app.Activity;
 import android.view.View;
 import android.os.Bundle;
 //import android.content.res.AssetManager;
@@ -32,6 +33,8 @@ public class IupApplication extends Application
     public void onCreate()
     {
 		super.onCreate();
+        registerActivityLifecycleCallbacks(new IupActivityLifecycleHandler());
+		
 //		setContentView(R.layout.main);
 
 		/* This will pass the HelloAndroidALmixer activity class
@@ -51,12 +54,8 @@ public class IupApplication extends Application
 		//doInit(java_asset_manager, this);
 	//	doInit(this);
 		Log.i("HelloAndroidIupApplication", "finished calling doInit");
-
-
 	}
-
-
-	/** Called when the activity is about to be paused. */
+			/** Called when the activity is about to be paused. */
 /*
 	@Override
 	protected void onPause()
@@ -132,6 +131,106 @@ public class IupApplication extends Application
 		Log.i("HelloAndroidIupApplication", "HelloAndroidALmixer_MyJavaPlaybackFinishedCallbackTriggeredFromNDK: channel:" + which_channel + ", source:" + channel_source + ", finishedNaturally:" + finished_naturally);
 	}
 */
+
+
+	// Requires API 14 and replaces onLowMemory
+	@Override
+	public void onTrimMemory(int level)
+	{
+		// Not sure which 
+		if(TRIM_MEMORY_COMPLETE == level)
+		{
+		}
+		else if(TRIM_MEMORY_RUNNING_CRITICAL == level)
+		{
+		}
+		else if(TRIM_MEMORY_RUNNING_LOW == level)
+		{
+		}
+		else
+		{
+		}
+
+	}
+		
+
+	// http://stackoverflow.com/questions/3667022/checking-if-an-android-application-is-running-in-the-background/13809991#13809991
+	private final class IupActivityLifecycleHandler implements ActivityLifecycleCallbacks
+	{
+		// I use four separate variables here. You can, of course, just use two and
+		// increment/decrement them instead of using four and incrementing them all.
+		private int resumedCount;
+		private int pausedCount;
+		private int startedCount;
+		private int stoppedCount;
+
+		@Override
+		public void onActivityCreated(Activity activity, Bundle saved_instance_state)
+		{
+		}
+
+		@Override
+		public void onActivityDestroyed(Activity activity)
+		{
+		}
+
+		@Override
+		public void onActivityResumed(Activity activity)
+		{
+			resumedCount += 1;
+			android.util.Log.w("onActivityResumed", "application is in foreground: " + (resumedCount > pausedCount));
+			android.util.Log.w("onActivityResumed", "application is in background: " + isApplicationInBackground());
+		}
+
+		@Override
+		public void onActivityPaused(Activity activity)
+		{
+			pausedCount += 1;
+			android.util.Log.w("onActivityPaused", "application is in foreground: " + (resumedCount > pausedCount));
+			android.util.Log.w("onActivityPaused", "application is in background: " + isApplicationInBackground());
+			
+		}
+
+		@Override
+		public void onActivitySaveInstanceState(Activity activity, Bundle outState)
+		{
+		}
+
+		@Override
+		public void onActivityStarted(Activity activity)
+		{
+			startedCount += 1;
+			android.util.Log.w("onActivityStarted", "application is visible: " + (startedCount > stoppedCount));
+			android.util.Log.w("onActivityStarted", "application is in background: " + isApplicationInBackground());
+			
+		}
+
+		@Override
+		public void onActivityStopped(Activity activity)
+		{
+			stoppedCount += 1;
+			android.util.Log.w("onActivityStopped", "application is visible: " + (startedCount > stoppedCount));
+			android.util.Log.w("onActivityStopped", "application is in background: " + isApplicationInBackground());
+
+		}
+
+		public boolean isApplicationVisible()
+		{
+			return startedCount > stoppedCount;
+		}
+
+		public boolean isApplicationInForeground()
+		{
+			return resumedCount > pausedCount;
+		}
+
+		public boolean isApplicationInBackground()
+		{
+			return (!isApplicationVisible() && !isApplicationInForeground());
+		}
+
+
+	}
 
 }
 
