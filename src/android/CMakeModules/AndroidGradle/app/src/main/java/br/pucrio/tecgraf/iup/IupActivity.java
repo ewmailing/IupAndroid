@@ -288,6 +288,7 @@ root_view.addView(myButton3, params);
 
 	public static ViewGroup createActivity(Activity parent_activity, long ihandle_ptr)
 	{
+		Log.i("HelloAndroidIupActivity", "createActivity");		
 		Intent the_intent = new Intent(parent_activity, IupActivity.class);
 		the_intent.putExtra("Ihandle", ihandle_ptr);
         parent_activity.startActivity(the_intent);

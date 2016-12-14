@@ -1,5 +1,6 @@
 package br.pucrio.tecgraf.iup;
 
+import java.lang.ref.WeakReference;
 import android.content.Context;
 import android.app.Application;
 import android.app.Activity;
@@ -23,6 +24,12 @@ public class IupApplication extends Application
 	{
         return s_sharedInstance;
     }
+
+	private WeakReference<Activity> currentActivity;
+	public Activity getCurrentActivity()
+	{
+		return currentActivity.get();
+	}
 
 	/* A native method that is implemented by the
      * 'hello-jni' native library, which is packaged
@@ -199,6 +206,8 @@ public class IupApplication extends Application
 		@Override
 		public void onActivityResumed(Activity activity)
 		{
+			IupApplication.this.currentActivity = new WeakReference<Activity>(activity);
+			
 			resumedCount += 1;
 			android.util.Log.w("onActivityResumed", "application is in foreground: " + (resumedCount > pausedCount));
 			android.util.Log.w("onActivityResumed", "application is in background: " + isApplicationInBackground());
@@ -221,6 +230,9 @@ public class IupApplication extends Application
 		@Override
 		public void onActivityStarted(Activity activity)
 		{
+			IupApplication.this.currentActivity = new WeakReference<Activity>(activity);
+
+
 			startedCount += 1;
 			android.util.Log.w("onActivityStarted", "application is visible: " + (startedCount > stoppedCount));
 			android.util.Log.w("onActivityStarted", "application is in background: " + isApplicationInBackground());

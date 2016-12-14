@@ -1,6 +1,8 @@
 package br.pucrio.tecgraf.iup;
 import java.lang.Object;
 import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,11 +31,31 @@ public final class IupCommon
 		return GetObjectFromIhandle(ihandle_ptr);
 	}
 
-
-	public static void addWidgetToParent(Object parent_widget, Object child_widget)
+	// http://grepcode.com/file/repository.grepcode.com/java/ext/com.google.android/android/4.3_r1/android/support/v7/app/MediaRouteButton.java#MediaRouteButton.getActivity%28%29
+	public static Activity getActivity(View the_view)
 	{
-		View child_view = null;
-		// TODO: Support fragments?
+		// Gross way of unwrapping the Activity 
+		Context context = the_view.getContext();
+		while(context instanceof ContextWrapper)
+		{
+			if(context instanceof Activity)
+			{
+			Log.i("Java IupCommon getActivity", "found Activity");
+				
+				return (Activity)context;
+			}
+			context = ((ContextWrapper)context).getBaseContext();
+		}
+			Log.i("Java IupCommon getActivity", "didn't find Activity");
+		return null;
+	}
+
+
+
+public static void addWidgetToParent(Object parent_widget, Object child_widget)
+{
+View child_view = null;
+// TODO: Support fragments?
 		if(child_widget instanceof android.view.View)
 		{
 			child_view = (View)child_widget;
@@ -103,6 +125,12 @@ public final class IupCommon
 		return nativeIupAttribGet(ihandle_ptr, key_string);
     }
 
+	/* IUP returns -1 through -4 for callbacks. I also return 0 if no callback is registered. */
+	public native static int HandleIupCallback(long ihandle_ptr, String key_string, Activity current_activity);
+	public static int handleIupCallback(long ihandle_ptr, String key_string, Activity current_activity)
+	{
+		return HandleIupCallback(ihandle_ptr, key_string, current_activity);
+	}
 
 }
 
