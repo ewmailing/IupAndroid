@@ -7,6 +7,24 @@
 #include "iupandroid_drv.h"
 
 
+/*
+JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_swapAndAttachViewGroup(JNIEnv* jni_env, jobject thiz, jobject current_activity, jlong ihandle_ptr)
+{
+	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
+
+	if(ih)
+	{
+		if(ih->handle)
+		{
+			
+		}
+	}
+
+
+}
+*/
+
+
 JNIEXPORT jboolean JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_doInit(JNIEnv* jni_env, jobject thiz, jobject current_activity)
 {
 

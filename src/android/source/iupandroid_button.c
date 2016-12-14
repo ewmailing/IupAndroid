@@ -26,6 +26,8 @@
 #include "iup_key.h"
 
 #include "iupandroid_drv.h"
+#include <jni.h>
+#include <android/log.h>
 
 
 #if 0
@@ -88,11 +90,88 @@ void iupdrvButtonAddBorders(int *x, int *y)
 	
 }
 
+static int androidButtonMapMethod(Ihandle* ih)
+{
+    JNIEnv* jni_env;
+	jclass java_class;
+    jmethodID method_id;
+	jobject java_widget;
+	char* attribute_value;
+   
+	jni_env = iupAndroid_GetEnvThreadSafe();
+
+
+
+
+	// TODO: Button and ImageButton are two different classes and we'll have to handle them separately.
+	// android.widget.Button
+	// android.widget.ImageButton
+	attribute_value = iupAttribGet(ih, "IMAGE");
+	if(attribute_value && *attribute_value!=0)
+	{
+		ih->data->type |= IUP_BUTTON_IMAGE;
+	
+		__android_log_print(ANDROID_LOG_INFO, "androidButtonMapMethod", "TODO: ImageButton not implemented"); 
+		
+	}
+	else
+	{
+
+		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupButtonHelper");
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createButton", "(J)Landroid/widget/Button;");
+		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
+
+		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
+			__android_log_print(ANDROID_LOG_INFO, "androidButtonMapMethod", "got button: %x", ih->handle); 
+
+		(*jni_env)->DeleteLocalRef(jni_env, java_widget);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	}
+
+	// NOTE: ImageButton doesn't directly support text
+	// NOTE: I set the Java properties (for TITLE) in createButton because it was easier to do there.
+	// However, setting these flags is easier to do here in C.
+	attribute_value = iupAttribGet(ih, "TITLE");
+	if(attribute_value && *attribute_value!=0)
+	{
+		ih->data->type |= IUP_BUTTON_TEXT;
+		/*
+		if(ih->data->type & IUP_BUTTON_IMAGE)
+		{
+		}
+		else
+		{
+		}
+		*/
+
+	}
+
+	iupAndroidAddWidgetToParent(jni_env, ih);
+
+	return IUP_NOERROR;	
+}
+
+static void androidButtonUnMapMethod(Ihandle* ih)
+{
+    JNIEnv* jni_env;
+	jni_env = iupAndroid_GetEnvThreadSafe();
+		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "starting"); 
+
+	if(ih && ih->handle)
+	{
+		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "got button: %x", ih->handle); 
+		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
+		ih->handle = NULL;
+	}
+}
+
 void iupdrvButtonInitClass(Iclass* ic)
 {
 	/* Driver Dependent Class functions */
-//	ic->Map = androidButtonMapMethod;
-//	ic->UnMap = androidButtonUnMapMethod;
+	ic->Map = androidButtonMapMethod;
+	ic->UnMap = androidButtonUnMapMethod;
+		__android_log_print(ANDROID_LOG_INFO, "iupdrvButtonInitClass", "entered"); 
 	
 #if 0
 

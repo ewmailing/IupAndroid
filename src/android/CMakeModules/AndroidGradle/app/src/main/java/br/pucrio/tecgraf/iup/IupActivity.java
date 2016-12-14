@@ -65,7 +65,31 @@ public class IupActivity extends Activity
 		
  		long ihandle_ptr = the_intent.getLongExtra("Ihandle", 0);
 		
+		// We need to swap the pointers around.
+		Object view_group_object = IupCommon.getObjectFromIhandle(ihandle_ptr);
+		if(view_group_object instanceof ViewGroup)
+		{
+		Log.i("HelloAndroidIupActivity", "swapping view group and activity");
+			ViewGroup view_group = (ViewGroup)view_group_object;
+			setContentView(view_group);
+			IupCommon.releaseIhandle(ihandle_ptr);
+		}
+
+
+
+
+
 		IupCommon.retainIhandle(this, ihandle_ptr);
+
+
+
+		// Deal with IUP properties
+		String attrib_string = IupCommon.iupAttribGet(ihandle_ptr, "TITLE");
+		if(null != attrib_string)
+		{
+			this.setTitle(attrib_string);
+		}
+		
 
 
 		//AssetManager java_asset_manager = this.getAssets();
@@ -73,7 +97,7 @@ public class IupActivity extends Activity
 		//IupEntry(this);
 		Log.i("HelloAndroidIupActivity", "finished calling doInit");
 
-		addButton();
+//		addButton();
 
 
 	}
@@ -262,11 +286,31 @@ root_view.addView(myButton3, params);
 	 * These Static methods are intended for C calling back into Java to do things.
 	 */
 
-	public static void createActivity(Activity parent_activity, long ihandle_ptr)
+	public static ViewGroup createActivity(Activity parent_activity, long ihandle_ptr)
 	{
 		Intent the_intent = new Intent(parent_activity, IupActivity.class);
 		the_intent.putExtra("Ihandle", ihandle_ptr);
         parent_activity.startActivity(the_intent);
+
+		RelativeLayout root_view = new RelativeLayout(parent_activity);
+		return root_view;
+		
+	}
+
+	public static void unMapActivity(Object activity_or_viewgroup, long ihandle_ptr)
+	{
+		// Because of the ViewGroup dance/trick I do, I need to check the type
+		if(activity_or_viewgroup instanceof Activity)
+		{
+			// Do I need to call finish() for the case where IupDestroy() is called
+			// but the Activity has not been popped from the navigation stack?
+			Activity the_activity = (Activity)activity_or_viewgroup;
+			the_activity.finish();
+
+		Log.i("HelloAndroidIupActivity", "calling finish() in unMapActivity");		
+			
+		}
+
 	}
 }
 

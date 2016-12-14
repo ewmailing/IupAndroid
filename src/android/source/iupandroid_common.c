@@ -45,7 +45,7 @@ static pthread_key_t s_attachThreadKey;
 This is hacky. 
 The problem is that for things like IupDialog to work (to create a new Activity),
 we need the current Activity.
-But Android doesn't provide a way to get the current API.
+But Android doesn't provide a way to get the current Activity.
 (There is an API 14 way of getting callbacks for Activity changes in the Application class, 
 but this still requires us to keep a hacky shadow variable, just like this.)
 The architecture of this backend has all IUP entry points come from Java into C.
@@ -174,7 +174,7 @@ void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* i
 	if(ih)
 	{
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, native_widget));
-		__android_log_print(ANDROID_LOG_ERROR, "Iup", "NewGlobalRef on ih->handle: %x", ih->handle); 
+		__android_log_print(ANDROID_LOG_INFO, "Iup", "NewGlobalRef on ih->handle: %x", ih->handle); 
 	}
 }
 
@@ -182,12 +182,35 @@ void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih)
 {
 	if(ih && ih->handle)
 	{
-		__android_log_print(ANDROID_LOG_ERROR, "Iup", "DeleteGlobalRef on ih->handle: %x", ih->handle); 
+		__android_log_print(ANDROID_LOG_INFO, "Iup", "DeleteGlobalRef on ih->handle: %x", ih->handle); 
 		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
 		ih->handle = NULL;
 	}
 }
 
+
+
+void iupAndroidAddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
+{
+
+
+	jclass java_class;
+    jmethodID method_id;
+
+	jobject parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
+	jobject child_handle = ih->handle;
+	
+		__android_log_print(ANDROID_LOG_INFO, "iupAndroidAddWidgetToParent", "parent_native_handle:%x, ih->handle: %x", parent_native_handle, ih->handle); 
+
+
+	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "addWidgetToParent", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, parent_native_handle, child_handle);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+}
 
 
 

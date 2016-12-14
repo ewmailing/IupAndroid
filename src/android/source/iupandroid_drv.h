@@ -30,8 +30,10 @@ void iupAndroid_SetCurrentCallFrameActivityObject(jobject current_activity);
 void iupAndroid_ClearCurrentCallFrameActivityObject(void);
 JNIEnv* iupAndroid_GetEnvThreadSafe();
 
-void iupAndroid_RetainIhandle(JNIEnv* env, jobject native_widget, Ihandle* ih);
-void iupAndroid_ReleaseIhandle(JNIEnv* env, Ihandle* ih);
+void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* ih);
+void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih);
+void iupAndroidAddWidgetToParent(JNIEnv* jni_env, Ihandle* ih);
+
 
 #if 0
 /* global variables, declared in iupmac_globalattrib.c */

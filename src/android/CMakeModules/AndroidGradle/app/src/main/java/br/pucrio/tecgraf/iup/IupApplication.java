@@ -1,6 +1,6 @@
 package br.pucrio.tecgraf.iup;
 
-
+import android.content.Context;
 import android.app.Application;
 import android.app.Activity;
 import android.view.View;
@@ -11,10 +11,18 @@ import android.util.Log;
 
 public class IupApplication extends Application
 {
+/*
 	static
 	{
 		System.loadLibrary("MySDLMainActivity");
 	}
+*/
+
+    private static IupApplication s_sharedInstance;
+	public static IupApplication getIupApplication()
+	{
+        return s_sharedInstance;
+    }
 
 	/* A native method that is implemented by the
      * 'hello-jni' native library, which is packaged
@@ -33,6 +41,7 @@ public class IupApplication extends Application
     public void onCreate()
     {
 		super.onCreate();
+		s_sharedInstance = this;
         registerActivityLifecycleCallbacks(new IupActivityLifecycleHandler());
 		
 //		setContentView(R.layout.main);

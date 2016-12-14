@@ -9,7 +9,6 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-		android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 		android:hardwareAccelerated="true"
         android:largeHeap="true"		
 		android:isGame="true"
@@ -29,8 +28,17 @@
         </activity>
 
 		<!-- Annoying: Must declare all Activities. -->
-		<activity android:name="br.pucrio.tecgraf.iup.IupLaunchActivity" />
-		<activity android:name="br.pucrio.tecgraf.iup.IupActivity" />
+		<activity 
+			android:name="br.pucrio.tecgraf.iup.IupLaunchActivity"
+			android:configChanges="orientation|keyboardHidden|screenSize"
+			android:noHistory="true"
+		>
+        </activity>
+		<activity
+			android:name="br.pucrio.tecgraf.iup.IupActivity"
+			android:configChanges="orientation|keyboardHidden|screenSize"
+		>
+        </activity>
     </application>
 
 	
