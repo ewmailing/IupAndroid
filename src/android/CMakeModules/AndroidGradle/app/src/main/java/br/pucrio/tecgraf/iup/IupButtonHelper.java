@@ -31,8 +31,7 @@ public final class IupButtonHelper
 		{
 			public void onClick(View v)
 			{
-				Activity the_activity = IupApplication.getIupApplication().getCurrentActivity();
-				IupCommon.handleIupCallback(ihandle_ptr, "ACTION", the_activity);
+				IupCommon.handleIupCallback(ihandle_ptr, "ACTION");
 			}
 		});
 

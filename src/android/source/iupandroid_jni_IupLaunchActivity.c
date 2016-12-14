@@ -8,7 +8,6 @@
 JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupLaunchActivity_IupEntry(JNIEnv* env, jobject thiz, jobject current_activity)
 {
 
-	iupAndroid_SetCurrentCallFrameActivityObject(current_activity);
 
 	__android_log_print(ANDROID_LOG_INFO,  "IupLaunchActivity", "Calling IupEntry");
 
@@ -16,7 +15,6 @@ JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupLaunchActivity_IupEntry(JNI
 	
 	__android_log_print(ANDROID_LOG_INFO,  "IupLaunchActivity", "Returned from IupEntry");
 
-	iupAndroid_ClearCurrentCallFrameActivityObject();
 	
   //  return JNI_TRUE;
 }

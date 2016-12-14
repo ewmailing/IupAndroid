@@ -28,11 +28,9 @@ JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_swapAndAttachViewG
 JNIEXPORT jboolean JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_doInit(JNIEnv* jni_env, jobject thiz, jobject current_activity)
 {
 
-	iupAndroid_SetCurrentCallFrameActivityObject(current_activity);
 	__android_log_print(ANDROID_LOG_INFO,  "IupActivity", "in doInit for IupActivity");
 
 
-	iupAndroid_ClearCurrentCallFrameActivityObject();
 	
     return JNI_TRUE;
 }

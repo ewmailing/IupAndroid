@@ -41,48 +41,6 @@ static JavaVM* s_javaVM = NULL;
 static jobject s_applicationContextObject = NULL;
 static pthread_key_t s_attachThreadKey;
 
-/*
-This is hacky. 
-The problem is that for things like IupDialog to work (to create a new Activity),
-we need the current Activity.
-But Android doesn't provide a way to get the current Activity.
-(There is an API 14 way of getting callbacks for Activity changes in the Application class, 
-but this still requires us to keep a hacky shadow variable, just like this.)
-The architecture of this backend has all IUP entry points come from Java into C.
-It also happens that the Java entry points come from Activity callbacks.
-So we can save the Activity object when we enter and clear it when we leave.
-Presumably, since it is in the callstack, we don't have to use a GlobalRef on it.
-
-NOTE: I'm not sure what to do about thread safety.
-I'm mostly assuming we operate only on the UI thread (for deliberate reasons).
-However, I can try to make this somewhat thread aware.
-
-Additional thought:
-If we happen to get a callback without an Activity (could this happen with Services or Fragments?)
-as a fallback, maybe we do want to implement the API 14 way and use the tracked Activity.
-I think the current approach is more correct because the Activity is directly known 
-(and maybe isn't the "current" activity due to things like async), 
-but as a fallback, it might be handy.
-*/
-
-static pthread_key_t s_currentCallFrameActivityObjectThreadKey;
-
-jobject iupAndroid_GetCurrentCallFrameActivityObject()
-{
-	return (jobject)pthread_getspecific(s_currentCallFrameActivityObjectThreadKey);
-}
-void iupAndroid_SetCurrentCallFrameActivityObject(jobject current_activity)
-{
-	pthread_setspecific(s_currentCallFrameActivityObjectThreadKey, (void*)current_activity);
-}
-void iupAndroid_ClearCurrentCallFrameActivityObject()
-{
-	pthread_setspecific(s_currentCallFrameActivityObjectThreadKey, NULL);
-}
-void iupAndroid_ThreadDestroyedForCurrentCallFrameActivityObject(void* user_data)
-{
-	pthread_setspecific(s_currentCallFrameActivityObjectThreadKey, NULL);
-}
 
 void iupAndroid_ThreadDestroyed(void* user_data)
 {
@@ -103,11 +61,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* java_vm, void* reserved)
      * Refer to http://developer.android.com/guide/practices/design/jni.html for the rationale behind this
      */
     if(pthread_key_create(&s_attachThreadKey, iupAndroid_ThreadDestroyed) != 0)
-	{
-		__android_log_print(ANDROID_LOG_ERROR, "Iup", "Error initializing pthread key");
-    }
-
-    if(pthread_key_create(&s_currentCallFrameActivityObjectThreadKey, iupAndroid_ThreadDestroyedForCurrentCallFrameActivityObject) != 0)
 	{
 		__android_log_print(ANDROID_LOG_ERROR, "Iup", "Error initializing pthread key");
     }
@@ -189,8 +142,41 @@ void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih)
 }
 
 
+jobject iupAndroid_GetApplication(JNIEnv* jni_env)
+{
+	jclass java_class;
+    jmethodID method_id;
+	jobject ret_object;
 
-void iupAndroidAddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
+	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
+	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
+	ret_object = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return ret_object;
+
+}
+
+jobject iupAndroid_GetCurrentActivity(JNIEnv* jni_env)
+{
+	jclass java_class;
+    jmethodID method_id;
+	jobject ret_object;
+
+	jobject application_object = iupAndroid_GetApplication(jni_env);
+
+    java_class = (*jni_env)->GetObjectClass(jni_env, application_object);
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "getCurrentActivity", "()Landroid/app/Activity;");
+	ret_object = (*jni_env)->CallObjectMethod(jni_env, application_object, method_id);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	(*jni_env)->DeleteLocalRef(jni_env, application_object);
+
+	return ret_object;
+}
+
+void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
 {
 
 

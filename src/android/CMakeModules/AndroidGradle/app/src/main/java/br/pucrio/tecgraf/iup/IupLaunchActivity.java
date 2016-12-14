@@ -143,11 +143,6 @@ public class IupLaunchActivity extends Activity
 		 * The asset manager fetched here is no longer used (though Init still initializes IupLaunch),
 		 * but the code is left here as an example because this pattern is generally useful in Android.
 		 */
-		Log.i("HelloAndroidIupLaunchActivity", "calling doInit");
-		//AssetManager java_asset_manager = this.getAssets();
-		//doInit(java_asset_manager, this);
-		IupEntry(this);
-		Log.i("HelloAndroidIupLaunchActivity", "finished calling doInit");
 
 //		addButton();
 
@@ -160,6 +155,18 @@ public class IupLaunchActivity extends Activity
 */
 	}
 
+	@Override
+	protected void onStart()
+	{
+		Log.i("HelloAndroidIupLaunchActivity", "calling onStart");
+		
+		super.onStart();
+		Log.i("HelloAndroidIupLaunchActivity", "calling doInit");
+		//AssetManager java_asset_manager = this.getAssets();
+		//doInit(java_asset_manager, this);
+		IupEntry(this);
+		Log.i("HelloAndroidIupLaunchActivity", "finished calling doInit");
+	}
 
 	/** Called when the activity is about to be paused. */
 	@Override

@@ -292,7 +292,12 @@ static int androidDialogMapMethod(Ihandle* ih)
 	
 	jni_env = iupAndroid_GetEnvThreadSafe();
 
-	current_activity = iupAndroid_GetCurrentCallFrameActivityObject();
+	current_activity = iupAndroid_GetCurrentActivity(jni_env);
+	if(NULL == current_activity)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "androidDialogMapMethod", "FAILURE: current_activity is NULL. Skipping call. No dialog will be created."); 
+		return IUP_ERROR;
+	}
 		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "current_activity: %x", current_activity); 
 
 	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupActivity");
@@ -325,6 +330,7 @@ static int androidDialogMapMethod(Ihandle* ih)
 	// Optional: Free up the temporaries.
 	(*jni_env)->DeleteLocalRef(jni_env, view_group);
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	(*jni_env)->DeleteLocalRef(jni_env, current_activity);
 
 	
 	iupAttribSet(ih, "RASTERSIZE", "500x400");

@@ -61,7 +61,7 @@ JNIEXPORT jstring JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribGe
 
 
 /* IUP returns -1 through -4 for callbacks. I also return 0 if no callback is registered. */
-JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string, jobject current_activity)
+JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string)
 {
 
 	int ret_val = 0;
@@ -78,14 +78,7 @@ JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNI
 
 			if(callback_function)
 			{
-				// All our callbacks must set the current activity.
-				iupAndroid_SetCurrentCallFrameActivityObject(current_activity);
-
 				ret_val = callback_function(ih);
-
-				// Clear the activity now that we are done with the callback.
-				iupAndroid_ClearCurrentCallFrameActivityObject();
-
 				if(IUP_CLOSE == ret_val)
 				{
 					IupExitLoop();
@@ -93,9 +86,6 @@ JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNI
 			}
 		}	
 	}
-
-
-
 	return ret_val;
 }
 

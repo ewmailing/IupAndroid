@@ -147,7 +147,7 @@ static int androidButtonMapMethod(Ihandle* ih)
 
 	}
 
-	iupAndroidAddWidgetToParent(jni_env, ih);
+	iupAndroid_AddWidgetToParent(jni_env, ih);
 
 	return IUP_NOERROR;	
 }

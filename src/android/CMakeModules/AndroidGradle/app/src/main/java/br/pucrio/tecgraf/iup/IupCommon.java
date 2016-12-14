@@ -126,10 +126,10 @@ View child_view = null;
     }
 
 	/* IUP returns -1 through -4 for callbacks. I also return 0 if no callback is registered. */
-	public native static int HandleIupCallback(long ihandle_ptr, String key_string, Activity current_activity);
-	public static int handleIupCallback(long ihandle_ptr, String key_string, Activity current_activity)
+	public native static int HandleIupCallback(long ihandle_ptr, String key_string);
+	public static int handleIupCallback(long ihandle_ptr, String key_string)
 	{
-		return HandleIupCallback(ihandle_ptr, key_string, current_activity);
+		return HandleIupCallback(ihandle_ptr, key_string);
 	}
 
 }
