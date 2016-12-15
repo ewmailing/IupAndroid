@@ -18,8 +18,8 @@
             android:name="com.blurrrsdk.app.BlurrrActivity"
 			android:configChanges="orientation|keyboardHidden|screenSize"
 			android:label="@string/app_name" 
-			android:screenOrientation="sensorLandscape"  
 			android:noHistory="true"
+			android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 		>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />`
