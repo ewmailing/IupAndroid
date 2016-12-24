@@ -16,43 +16,57 @@ import android.content.Intent;
 
 import br.pucrio.tecgraf.iup.IupCommon;
 
+
+// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+// Using res/anim/*.xml files, and overridePendingTransition, we fix can this
+// (e.g. slide left and right which makes more sense with a left-facing back button).
+// But it only works with the R.java resource system.
+// But because we are (correctly) treating Iup as a separate library/package from the main app,
+// the R.java namespace is wrong and we must the final app's package namespace,
+// which is something we can't know.
+// The new AAR libraries for Android might solve this, but everybody is going to have to spend
+// time getting their build systems to properly build Iup and then import Iup into their projects.
+// For now, comment out the overridingPendingTransitions until we have the infrastructure to support it.
+//import net.playcontrol.MyBlurrrIupProject.R;
+
+
 public class IupActivity extends Activity
 {
 	/*
-	static
-	{
-		System.loadLibrary("c++_shared");
-		System.loadLibrary("icudataswift");
-		System.loadLibrary("icuucswift");
-		System.loadLibrary("icui18nswift");
-		System.loadLibrary("swiftCore");
-		System.loadLibrary("swiftSwiftOnoneSupport");
-		System.loadLibrary("MySDLMainActivity");
-	}
-	*/
+	   static
+	   {
+	   System.loadLibrary("c++_shared");
+	   System.loadLibrary("icudataswift");
+	   System.loadLibrary("icuucswift");
+	   System.loadLibrary("icui18nswift");
+	   System.loadLibrary("swiftCore");
+	   System.loadLibrary("swiftSwiftOnoneSupport");
+	   System.loadLibrary("MySDLMainActivity");
+	   }
+	   */
 
 	/* A native method that is implemented by the
-     * 'hello-jni' native library, which is packaged
-     * with this application.
-     */
-//    public static native boolean doStaticActivityInit();
-    public native void doPause();
-    public native void doResume();
-    public native void doDestroy();
+	 * 'hello-jni' native library, which is packaged
+	 * with this application.
+	 */
+	//    public static native boolean doStaticActivityInit();
+	public native void doPause();
+	public native void doResume();
+	public native void doDestroy();
 
 
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
-//		setContentView(R.layout.main);
+		//		setContentView(R.layout.main);
 
 		/* This will pass the HelloAndroidBlurrr activity class
 		 * which Blurrr will capture to initialize the Blurrr_RWops system behind the scenes.
 		 */
-//        HelloAndroidBlurrr.doStaticActivityInit();
-		
+		//        HelloAndroidBlurrr.doStaticActivityInit();
+
 
 		/* Once upon a time, we needed to pass the AssetManager to Blurrr.
 		 * But that has been changed to conform to SDL's new behavior which
@@ -62,14 +76,14 @@ public class IupActivity extends Activity
 		 */
 		Log.i("HelloAndroidIupActivity", "calling doInit");
 		Intent the_intent = getIntent();
-		
- 		long ihandle_ptr = the_intent.getLongExtra("Ihandle", 0);
-		
+
+		long ihandle_ptr = the_intent.getLongExtra("Ihandle", 0);
+
 		// We need to swap the pointers around.
 		Object view_group_object = IupCommon.getObjectFromIhandle(ihandle_ptr);
 		if(view_group_object instanceof ViewGroup)
 		{
-		Log.i("HelloAndroidIupActivity", "swapping view group and activity");
+			Log.i("HelloAndroidIupActivity", "swapping view group and activity");
 			ViewGroup view_group = (ViewGroup)view_group_object;
 			setContentView(view_group);
 			IupCommon.releaseIhandle(ihandle_ptr);
@@ -89,7 +103,7 @@ public class IupActivity extends Activity
 		{
 			this.setTitle(attrib_string);
 		}
-		
+
 
 
 		//AssetManager java_asset_manager = this.getAssets();
@@ -97,7 +111,7 @@ public class IupActivity extends Activity
 		//IupEntry(this);
 		Log.i("HelloAndroidIupActivity", "finished calling doInit");
 
-//		addButton();
+		//		addButton();
 
 
 	}
@@ -262,6 +276,24 @@ root_view.addView(myButton3, params);
 		
 	}
 */
+
+	@Override
+	public void finish()
+	{
+		super.finish();
+		// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+		// Using res/anim/*.xml files, and overridePendingTransition, we can fix this
+		// (e.g. slide left and right which makes more sense with a left-facing back button).
+		// But it only works with the R.java resource system.
+		// But because we are (correctly) treating Iup as a separate library/package from the main app,
+		// the R.java namespace is wrong and we must the final app's package namespace,
+		// which is something we can't know.
+		// The new AAR libraries for Android might solve this, but everybody is going to have to spend
+		// time getting their build systems to properly build Iup and then import Iup into their projects.
+		// For now, comment out the overridingPendingTransitions until we have the infrastructure to support it.
+//		overridePendingTransition(R.anim.iup_slide_from_left, R.anim.iup_slide_to_right);
+	}
+
     public void myClickHandler(View the_view)
 	{
 		switch(the_view.getId())
@@ -292,6 +324,18 @@ root_view.addView(myButton3, params);
 		Intent the_intent = new Intent(parent_activity, IupActivity.class);
 		the_intent.putExtra("Ihandle", ihandle_ptr);
         parent_activity.startActivity(the_intent);
+
+		// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+		// Using res/anim/*.xml files, and overridePendingTransition, we can fix this
+		// (e.g. slide left and right which makes more sense with a left-facing back button).
+		// But it only works with the R.java resource system.
+		// But because we are (correctly) treating Iup as a separate library/package from the main app,
+		// the R.java namespace is wrong and we must the final app's package namespace,
+		// which is something we can't know.
+		// The new AAR libraries for Android might solve this, but everybody is going to have to spend
+		// time getting their build systems to properly build Iup and then import Iup into their projects.
+		// For now, comment out the overridingPendingTransitions until we have the infrastructure to support it.
+//		parent_activity.overridePendingTransition(R.anim.iup_slide_from_right, R.anim.iup_slide_to_left);
 
 		RelativeLayout root_view = new RelativeLayout(parent_activity);
 		return root_view;
