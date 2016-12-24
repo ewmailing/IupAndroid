@@ -44,9 +44,9 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
-void IupEntry()
+void IupEntryPoint()
 {
-	IupOpen(0, NULL);
+//	IupOpen(0, NULL);
 	Ihandle* button = IupButton("Iup Button", "");
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
 

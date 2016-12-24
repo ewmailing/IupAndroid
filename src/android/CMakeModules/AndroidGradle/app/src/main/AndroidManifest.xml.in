@@ -39,6 +39,8 @@
 			android:configChanges="orientation|keyboardHidden|screenSize"
 		>
         </activity>
+		<!-- This is optional. This allows you to change the name of the IupEntryPoint function you use. You may completely remove this line if you don't need to change the name. -->
+		<meta-data android:name="ENTRY_POINT" android:value="IupEntryPoint" />
     </application>
 
 	

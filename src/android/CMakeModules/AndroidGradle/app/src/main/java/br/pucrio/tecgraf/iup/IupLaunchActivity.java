@@ -11,6 +11,9 @@ import android.os.Bundle;
 //import android.content.res.AssetManager;
 import android.util.Log;
 
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
+
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -70,7 +73,7 @@ public class IupLaunchActivity extends Activity
      * with this application.
      */
 //    public static native boolean doStaticActivityInit();
-    public native void IupEntry(IupLaunchActivity this_activity);
+    public native void IupEntry(IupLaunchActivity this_activity, String entry_function_name);
     public native void doPause();
     public native void doResume();
     public native void doDestroy();
@@ -164,8 +167,32 @@ public class IupLaunchActivity extends Activity
 		Log.i("HelloAndroidIupLaunchActivity", "calling doInit");
 		//AssetManager java_asset_manager = this.getAssets();
 		//doInit(java_asset_manager, this);
-		IupEntry(this);
+
+		String entry_function_name = getEntryPointFunctionNameFromManifest();
+		Log.i("HelloAndroidIupLaunchActivity", "entry_function_name: " + entry_function_name);
+		IupEntry(this, entry_function_name);
 		Log.i("HelloAndroidIupLaunchActivity", "finished calling doInit");
+	}
+
+	// String is allowed to be null
+	private String getEntryPointFunctionNameFromManifest()
+	{
+		String entry_function_name = null;
+		try
+		{
+			ApplicationInfo app_info = getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			Bundle bundle = app_info.metaData;
+			entry_function_name = bundle.getString("ENTRY_POINT");
+		}
+		catch(PackageManager.NameNotFoundException e)
+		{
+			// Log.e(TAG, "Failed to load meta-data, NameNotFound: " + e.getMessage());
+		}
+		catch (NullPointerException e)
+		{
+			// Log.e(TAG, "Failed to load meta-data, NullPointer: " + e.getMessage());			
+		}
+		return entry_function_name;
 	}
 
 	/** Called when the activity is about to be paused. */
@@ -173,8 +200,8 @@ public class IupLaunchActivity extends Activity
 	protected void onPause()
 	{
 		Log.i("HelloAndroidIupLaunchActivity", "calling onPause");
-		
-//		doPause();
+
+		//		doPause();
 		super.onPause();
 	}
 
@@ -182,9 +209,9 @@ public class IupLaunchActivity extends Activity
 	protected void onResume()
 	{
 		Log.i("HelloAndroidIupLaunchActivity", "calling onResume");
-		
+
 		super.onResume();
-//		doResume();
+		//		doResume();
 	}
 
 	/** Called when the activity is about to be destroyed. */
@@ -192,8 +219,8 @@ public class IupLaunchActivity extends Activity
 	protected void onDestroy()
 	{
 		Log.i("HelloAndroidIupLaunchActivity", "calling onDestroy");
-//		doDestroy();
-		
+		//		doDestroy();
+
 		super.onDestroy();
 		Log.i("HelloAndroidIupLaunchActivity", "finished calling onDestroy");		
 	}
