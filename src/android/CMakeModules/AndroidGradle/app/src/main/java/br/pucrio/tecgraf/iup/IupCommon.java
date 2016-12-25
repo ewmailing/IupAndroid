@@ -117,6 +117,28 @@ View child_view = null;
 
 	}
 
+	public static void removeWidgetFromParent(long ihandle_ptr)
+	{
+		View child_view = null;
+		Object child_widget = getObjectFromIhandle(ihandle_ptr);
+
+// TODO: Support fragments?
+		if(child_widget instanceof android.view.View)
+		{
+			child_view = (View)child_widget;
+		}
+		else
+		{
+			Log.e("Java IupCommon addWidgetToParent", "child_widget is not a supported type");
+			return;
+		}
+
+		ViewGroup parent_view_group = (ViewGroup)child_view.getParent();
+		if(null != parent_view_group)
+		{
+			parent_view_group.removeView(child_view);
+		}
+	}
 
 
     public native static String nativeIupAttribGet(long ihandle_ptr, String key_string);

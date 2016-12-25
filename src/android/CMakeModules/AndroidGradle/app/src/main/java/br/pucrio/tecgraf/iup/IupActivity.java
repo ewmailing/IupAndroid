@@ -17,7 +17,7 @@ import android.content.Intent;
 import br.pucrio.tecgraf.iup.IupCommon;
 
 
-// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+// <sigh>: Android's default Activity transitions look terrible and nonsensical.
 // Using res/anim/*.xml files, and overridePendingTransition, we fix can this
 // (e.g. slide left and right which makes more sense with a left-facing back button).
 // But it only works with the R.java resource system.
@@ -281,7 +281,7 @@ root_view.addView(myButton3, params);
 	public void finish()
 	{
 		super.finish();
-		// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+		// <sigh>: Android's default Activity transitions look terrible and nonsensical.
 		// Using res/anim/*.xml files, and overridePendingTransition, we can fix this
 		// (e.g. slide left and right which makes more sense with a left-facing back button).
 		// But it only works with the R.java resource system.
@@ -325,7 +325,7 @@ root_view.addView(myButton3, params);
 		the_intent.putExtra("Ihandle", ihandle_ptr);
         parent_activity.startActivity(the_intent);
 
-		// <sigh>: Android's default Activity transitions look terrible and non-sensicle.
+		// <sigh>: Android's default Activity transitions look terrible and nonsensical.
 		// Using res/anim/*.xml files, and overridePendingTransition, we can fix this
 		// (e.g. slide left and right which makes more sense with a left-facing back button).
 		// But it only works with the R.java resource system.

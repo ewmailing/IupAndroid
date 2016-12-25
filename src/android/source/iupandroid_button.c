@@ -154,13 +154,23 @@ static int androidButtonMapMethod(Ihandle* ih)
 
 static void androidButtonUnMapMethod(Ihandle* ih)
 {
-    JNIEnv* jni_env;
-	jni_env = iupAndroid_GetEnvThreadSafe();
-		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "starting"); 
+
+		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "starting");
+
 
 	if(ih && ih->handle)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "got button: %x", ih->handle); 
+    	JNIEnv* jni_env;
+		jclass java_class;
+		jmethodID method_id;
+    	jni_env = iupAndroid_GetEnvThreadSafe();
+
+		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+    	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+    	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
+    	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
 		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
 		ih->handle = NULL;
 	}
