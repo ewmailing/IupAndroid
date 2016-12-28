@@ -8,9 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Button;
 
 import android.content.Intent;
 
@@ -32,19 +30,6 @@ import br.pucrio.tecgraf.iup.IupCommon;
 
 public class IupActivity extends Activity
 {
-	/*
-	   static
-	   {
-	   System.loadLibrary("c++_shared");
-	   System.loadLibrary("icudataswift");
-	   System.loadLibrary("icuucswift");
-	   System.loadLibrary("icui18nswift");
-	   System.loadLibrary("swiftCore");
-	   System.loadLibrary("swiftSwiftOnoneSupport");
-	   System.loadLibrary("MySDLMainActivity");
-	   }
-	   */
-
 	/* A native method that is implemented by the
 	 * 'hello-jni' native library, which is packaged
 	 * with this application.
@@ -111,110 +96,8 @@ public class IupActivity extends Activity
 		//IupEntry(this);
 		Log.i("HelloAndroidIupActivity", "finished calling doInit");
 
-		//		addButton();
-
-
 	}
 
-    public void addButton()	
-	{
-	//	final ViewGroup viewGroup = (ViewGroup) ((ViewGroup) this
-      //     .findViewById(android.R.id.content)).getChildAt(0);
-	//	LinearLayout myLayout = (LinearLayout)viewGroup;
-
-		//LinearLayout myLayout = findViewById(android.R.id.content);
-//		View myLayout = findViewById(android.R.id.content);
-		int dpValue = 5; // margin in dips
-//float d = context.getResources().getDisplayMetrics().density;
-float d = this.getResources().getDisplayMetrics().density;
-int margin = (int)(dpValue * d); // margin in pixels
-// flooring for offsets and rounding for widths???
-
-Button myButton = new Button(this);
-myButton.setText("My Button!");
-/*
-myButton.setLayoutParams(new LinearLayout.LayoutParams(
-                                     LinearLayout.LayoutParams.MATCH_PARENT,
-                                     LinearLayout.LayoutParams.MATCH_PARENT));
-*/
-//myLayout.addView(myButton);
-
-
-//LinearLayout root_view = new LinearLayout(this);
-final RelativeLayout root_view = new RelativeLayout(this);
-
-
-setContentView(root_view);
-
-{
-RelativeLayout.LayoutParams params;
-ViewGroup.LayoutParams vg_layout_params = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-//params = new RelativeLayout.LayoutParams(300, 400);
-params = new RelativeLayout.LayoutParams(vg_layout_params);
-params.leftMargin = 100;
-params.topMargin = 100;
-
-//root_view.addView(myButton);
-root_view.addView(myButton, params);
-
-
-myButton.setOnClickListener(new View.OnClickListener()
-{
-     @Override
-     public void onClick(View v) {
-           // put code on click operation
-		   		Intent the_intent = new Intent(IupActivity.this, IupActivity.class);
-		// Prevent the back button from returning to this "launcher" activity.
-		// Note: This AndroidManifest entry will accomplish the same goal: android:noHistory="true"
-		//the_intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(the_intent);
-
-     }
-});
-
-}
-
-
-
-Button myButton2 = new Button(this);
-myButton2.setText("My Button2!");
-
-{
-RelativeLayout.LayoutParams params;
-ViewGroup.LayoutParams vg_layout_params = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-//params = new RelativeLayout.LayoutParams(300, 400);
-params = new RelativeLayout.LayoutParams(vg_layout_params);
-params.leftMargin = 200;
-params.topMargin = 200;
-
-root_view.addView(myButton2, params);
-//root_view.addView(myButton2);
-}
-
-Button myButton3 = new Button(this);
-myButton3.setText("My Button3!");
-
-{
-RelativeLayout.LayoutParams params;
-ViewGroup.LayoutParams vg_layout_params = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-//params = new RelativeLayout.LayoutParams(300, 400);
-params = new RelativeLayout.LayoutParams(vg_layout_params);
-params.leftMargin = 300;
-params.topMargin = 300;
-
-root_view.addView(myButton3, params);
-//root_view.addView(myButton3);
-}
-
-
-
-	}
 
 	/** Called when the activity is about to be paused. */
 	@Override

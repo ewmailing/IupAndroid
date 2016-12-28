@@ -15,9 +15,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Button;
 
 import android.content.Intent;
 
@@ -131,31 +128,6 @@ public class IupLaunchActivity extends Activity
 			return;
 		}
 
-
-//		setContentView(R.layout.main);
-
-		/* This will pass the HelloAndroidIupLaunch activity class
-		 * which IupLaunch will capture to initialize the IupLaunch_RWops system behind the scenes.
-		 */
-//        HelloAndroidIupLaunch.doStaticActivityInit();
-		
-
-		/* Once upon a time, we needed to pass the AssetManager to IupLaunch.
-		 * But that has been changed to conform to SDL's new behavior which
-		 * requires the Activity class instead.
-		 * The asset manager fetched here is no longer used (though Init still initializes IupLaunch),
-		 * but the code is left here as an example because this pattern is generally useful in Android.
-		 */
-
-//		addButton();
-
-/*
-		Intent the_intent = new Intent(this, IupActivity.class);
-		// Prevent the back button from returning to this "launcher" activity.
-		// Note: This AndroidManifest entry will accomplish the same goal: android:noHistory="true"
-		//the_intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(the_intent);
-*/
 	}
 
 	@Override
