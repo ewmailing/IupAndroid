@@ -265,6 +265,11 @@ int iupdrvDialogSetPlacement(Ihandle* ih)
 	return 1;
 }
 
+void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
+{
+	
+}
+
 
 /****************************************************************
  Callbacks and Events
@@ -298,12 +303,12 @@ static int androidDialogMapMethod(Ihandle* ih)
 		__android_log_print(ANDROID_LOG_ERROR, "androidDialogMapMethod", "FAILURE: current_activity is NULL. Skipping call. No dialog will be created."); 
 		return IUP_ERROR;
 	}
-		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "current_activity: %x", current_activity); 
+		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "current_activity: %p", current_activity); 
 
 	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupActivity");
 	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createActivity", "(Landroid/app/Activity;J)Landroid/view/ViewGroup;");
 	view_group = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, current_activity, (jlong)(intptr_t)ih);
-		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "view_group: %x", view_group); 
+		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "view_group: %p", view_group); 
 
 	// Unforuntately, Android doesn't give us back the Activity object immediately.
 	// We can only get the object after the onCreate() method is invoked for the Activity.

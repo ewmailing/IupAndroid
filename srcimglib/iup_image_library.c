@@ -24,6 +24,12 @@ void IupImageLibOpen(void)
 #if defined(WIN32)
   /* iupImglibBaseLibWin16x16Open(); */
   iupImglibBaseLibWin32x32Open();
+#elif defined(__ANDROID__)
+#warning "Android iup_image_library not implemented"
+#elif defined(__APPLE__)
+	#warning "Apple iup_image_library not implemented"
+#elif defined(__EMSCRIPTEN__)
+#warning "Emscripten iup_image_library not implemented"
 #elif defined(MOTIF)
   iupImglibBaseLibMot16x16Open();
 #else
@@ -48,7 +54,14 @@ void IupImageLibOpen(void)
 
 #ifdef WIN32
   iupImglibIconsWin48x48Open();
+#elif defined(__ANDROID__)
+#warning "Android iup_image_library not implemented"
+#elif defined(__APPLE__)
+	#warning "Apple iup_image_library not implemented"
+#elif defined(__EMSCRIPTEN__)
+#warning "Emscripten iup_image_library not implemented"
 #elif defined(MOTIF)
+
 #else
   iupImglibIconsGtk48x48Open();
 #endif  
