@@ -71,18 +71,36 @@ static void androidFrameUnMapMethod(Ihandle* ih)
 }
 
 
-
-void iupdrvFrameGetDecorOffset(int *x, int *y)
+void iupdrvFrameGetDecorOffset(Ihandle* ih, int *x, int *y)
 {
 	*x = 2;
 	*y = 2;
 }
 
-int iupdrvFrameHasClientOffset(void)
+int iupdrvFrameHasClientOffset(Ihandle* ih)
 {
 	return 0;
 }
 
+void iupdrvFrameGetTitleHeight(Ihandle* ih, int *h)
+{
+  int charheight;
+  iupdrvFontGetCharSize(ih, NULL, &charheight);
+  *h = charheight;
+}
+
+void iupdrvFrameGetDecorSize(Ihandle* ih, int *w, int *h)
+{
+  *w = 5;
+  *h = 5;
+
+  if (iupAttribGet(ih, "_IUPFRAME_HAS_TITLE") || iupAttribGet(ih, "TITLE"))
+  {
+    int title_height;
+    iupdrvFrameGetTitleHeight(ih, &title_height);
+    (*h) += title_height;
+  }
+}
 
 
 void iupdrvFrameInitClass(Iclass* ic)
