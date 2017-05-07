@@ -1,5 +1,5 @@
 /** \file
- * \brief MAC OS System Information
+ * \brief Android System Information
  *
  * See Copyright Notice in "iup.h"
  */
@@ -13,13 +13,17 @@
 #include <limits.h>
 #include <errno.h>
 
-//#include <gtk/gtk.h>
+#include <jni.h>
+#include <android/log.h>
+
 
 #include "iup.h"
 
 #include "iup_str.h"
 #include "iup_drv.h"
 #include "iup_drvinfo.h"
+#include "iupandroid_drv.h"
+
 
 void iupdrvAddScreenOffset(int *x, int *y, int add)
 {
@@ -189,6 +193,73 @@ char *iupdrvGetUserName(void)
 
 	
 }
+
+int iupdrvGetPreferencePath(char *filename, int str_len, const char *app_name)
+{
+	JNIEnv* jni_env;
+    jmethodID method_id;
+	jclass java_class;
+	/* aka context object */
+	jobject context_object;
+	jobject file_object;
+	jstring j_path_string;
+	const char* c_path_string = NULL;
+	size_t num;
+	char path_separator[] = "/";
+
+	filename[0] = '\0';
+
+	jni_env = iupAndroid_GetEnvThreadSafe();
+
+	/* the Application object is a context */
+	context_object = iupAndroid_GetApplication(jni_env);
+
+	java_class = (*jni_env)->GetObjectClass(jni_env, context_object);
+
+	/* file_object = context.getFilesDir(); */
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "getFilesDir", "()Ljava/io/File;");
+	file_object = (*jni_env)->CallObjectMethod(jni_env, context_object, method_id);
+	if(NULL == file_object)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "iupAndroid", "iupdrvGetPreferencePath context.getFilesDir() failed"); 
+		(*jni_env)->DeleteLocalRef(jni_env, file_object);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+		(*jni_env)->DeleteLocalRef(jni_env, context_object);
+
+		return 0;
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	java_class = (*jni_env)->GetObjectClass(jni_env, file_object);
+	/* path = file_object.getAbsolutePath(); */
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "getAbsolutePath", "()Ljava/lang/String;");
+	j_path_string = (jstring)(*jni_env)->CallObjectMethod(jni_env, file_object, method_id);
+
+	c_path_string = (*jni_env)->GetStringUTFChars(jni_env, j_path_string, NULL);
+
+	num = strlcpy(filename, c_path_string, str_len);
+
+	(*jni_env)->ReleaseStringUTFChars(jni_env, j_path_string, c_path_string);
+	(*jni_env)->DeleteLocalRef(jni_env, file_object);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	(*jni_env)->DeleteLocalRef(jni_env, context_object);
+
+    if(num >= str_len)
+    {
+      filename[0] = '\0';
+      return 0;
+	}
+	/* Don't forget to end in trailing '\' */
+    num = strlcat(filename, path_separator, str_len);
+    if (num >= str_len)
+    {
+      filename[0] = '\0';
+      return 0;
+	}
+
+	return 1;
+}
+
 
 char* iupdrvLocaleInfo(void)
 {
