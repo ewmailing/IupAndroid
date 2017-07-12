@@ -28,6 +28,14 @@
 
 #include "iupandroid_drv.h"
 
+
+void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
+{
+  (void)ih;
+  (void)x;
+  (void)y;
+}
+
 static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
 /*
