@@ -84,7 +84,7 @@ static const void* IUP_android_BUTTON_RECEIVER_OBJ_KEY = "IUP_android_BUTTON_REC
 #endif
 
 
-void iupdrvButtonAddBorders(int *x, int *y)
+void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
 
 	

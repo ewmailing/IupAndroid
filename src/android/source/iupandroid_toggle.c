@@ -185,7 +185,7 @@ static void androidToggleUnMapMethod(Ihandle* ih)
 #endif
 }
 
-void iupdrvToggleAddBorders(int *x, int *y)
+void iupdrvToggleAddBorders(Ihandle* ih, int *x, int *y)
 {
 	
 	
@@ -193,7 +193,7 @@ void iupdrvToggleAddBorders(int *x, int *y)
 
 
 
-void iupdrvToggleAddCheckBox(int *x, int *y, const char* str)
+void iupdrvToggleAddCheckBox(Ihandle* ih, int *x, int *y, const char* str)
 {
 
 	
