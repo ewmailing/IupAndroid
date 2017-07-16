@@ -66,6 +66,7 @@ public class IupApplication extends Application
 
 	}
 		
+    public native void IupExitCallback();
 
 	// http://stackoverflow.com/questions/3667022/checking-if-an-android-application-is-running-in-the-background/13809991#13809991
 	private final class IupActivityLifecycleHandler implements ActivityLifecycleCallbacks
@@ -97,7 +98,11 @@ public class IupApplication extends Application
 			android.util.Log.w("onActivityDestroyed", "count: " + activityCount);			
 			// When the activity count goes to 0 here, I think we can infer that the application is quitting.
 			// On my device, isApplicationInBackground() is true and the onActivityStopped transition already occurred.
-			// TODO: Add quit callback here.
+			// Call quit callback here.
+			if(0 == activityCount)
+			{
+				IupExitCallback();
+			}
 		}
 
 		@Override

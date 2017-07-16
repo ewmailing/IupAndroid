@@ -45,34 +45,44 @@ int OnButtonCallback()
 	return IUP_DEFAULT;
 }
 
+
+void IupExitPoint()
+{
+	IupClose();
+}
+
+// For Android, this name is hardcoded
 void IupEntryPoint()
 {
-//	IupOpen(0, NULL);
-	int ret_val;
-
-	Ihandle* config_file = IupConfig();
-	IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
-	ret_val = IupConfigLoad(config_file);
-
-	const char* config_value;
-	if(ret_val == 0)
 	{
-		const char* config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
-		printf("config value is %s\n", config_value);
+		int ret_val;
+		const char* config_value;
+
+		Ihandle* config_file = IupConfig();
+		IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
+		ret_val = IupConfigLoad(config_file);
+
+		if(ret_val == 0)
+		{
+			const char* config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
+			printf("config value is %s\n", config_value);
+		}
+		else
+		{
+			printf("config file not found\n");
+		}
+		IupConfigSetVariableStr(config_file, "Group1", "Key1", "Value1");
+		IupConfigSave(config_file);
+		config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
+		printf("retrieved saved config value is %s\n", config_value);
+
+		IupDestroy(config_file);
+		config_file = NULL;
 	}
-	else
+
 	{
-		printf("config file not found\n");
+		IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 	}
-	IupConfigSetVariableStr(config_file, "Group1", "Key1", "Value1");
-	IupConfigSave(config_file);
-	config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
-	printf("retrieved saved config value is %s\n", config_value);
-
-	IupDestroy(config_file);
-	config_file = NULL;
-
-
 
 	Ihandle* button = IupButton("Iup Button", "");
 	IupSetCallback(button, "ACTION", (Icallback)OnButtonCallback);
@@ -88,6 +98,18 @@ void IupEntryPoint()
 
 
 	IupShow(dialog);
+}
+
+
+// IMPORTANT: This is never called on Android and does nothing. But a good cross-platform IUP app will always have this for the other platforms.
+// You should not modify this template.
+// Everything reconverges at IupEntryPoint().
+int main(int argc, char* argv[])
+{
+	IupOpen(&argc, &argv);
+	IupSetFunction("ENTRY_POINT", (Icallback)IupEntryPoint);
+	IupMainLoop();
+	return 0;
 }
 
 
