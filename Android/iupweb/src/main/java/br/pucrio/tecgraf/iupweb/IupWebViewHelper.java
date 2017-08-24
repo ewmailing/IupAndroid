@@ -19,7 +19,7 @@ public final class IupWebViewHelper
 	public static IupWebView createWebView(final long ihandle_ptr)
 	{
 		Context the_context = (Context)IupApplication.getIupApplication();
-		IupWebView web_view = new IupWebView(the_context);
+		IupWebView web_view = new IupWebView(the_context, ihandle_ptr);
 
 	//	web_view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 600));
 
