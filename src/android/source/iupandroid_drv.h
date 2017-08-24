@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include "iup.h"
+#include "iup_export.h"
 //#include "iup_object.h"
 #include <jni.h>
 /*
@@ -25,15 +26,15 @@ typedef struct AndroidHandleWrapper AndroidHandleWrapper;
 
 */
 
-JNIEnv* iupAndroid_GetEnvThreadSafe();
+IUP_EXPORTI JNIEnv* iupAndroid_GetEnvThreadSafe();
 
-void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* ih);
-void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih);
+IUP_EXPORTI void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* ih);
+IUP_EXPORTI void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih);
 
-jobject iupAndroid_GetApplication(JNIEnv* jni_env);
-jobject iupAndroid_GetCurrentActivity(JNIEnv* jni_env);
+IUP_EXPORTI jobject iupAndroid_GetApplication(JNIEnv* jni_env);
+IUP_EXPORTI jobject iupAndroid_GetCurrentActivity(JNIEnv* jni_env);
 
-void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih);
+IUP_EXPORTI void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih);
 
 
 

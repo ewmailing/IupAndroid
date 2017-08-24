@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 public final class IupCommon
@@ -84,8 +85,8 @@ View child_view = null;
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
 			
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
-			layout_params.leftMargin = 500;
-			layout_params.topMargin = 500;
+			layout_params.leftMargin = 5;
+			layout_params.topMargin = 5;
 
 			
 			parent_view.addView(child_view, layout_params);
@@ -103,10 +104,14 @@ View child_view = null;
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
 			
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
-			layout_params.leftMargin = 600;
-			layout_params.topMargin = 600;
+			layout_params.leftMargin = 20;
+			layout_params.topMargin = 20;
+			Log.d("Java IupCommon addWidgetToParent", "child_view class name is: " + child_view.getClass().getName());
+
 
 			parent_view.addView(child_view, layout_params);
+			Log.d("Java IupCommon addWidgetToParent", "adding to viewgroup");
+
 
 		}
 		else
