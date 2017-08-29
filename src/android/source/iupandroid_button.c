@@ -122,7 +122,7 @@ static int androidButtonMapMethod(Ihandle* ih)
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
-			__android_log_print(ANDROID_LOG_INFO, "androidButtonMapMethod", "got button: %x", ih->handle); 
+			__android_log_print(ANDROID_LOG_INFO, "androidButtonMapMethod", "got button: %p", ih->handle);
 
 		(*jni_env)->DeleteLocalRef(jni_env, java_widget);
 		(*jni_env)->DeleteLocalRef(jni_env, java_class);

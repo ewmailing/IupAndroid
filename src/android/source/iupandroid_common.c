@@ -127,7 +127,7 @@ void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* i
 	if(ih)
 	{
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, native_widget));
-		__android_log_print(ANDROID_LOG_INFO, "Iup", "NewGlobalRef on ih->handle: %x", ih->handle); 
+		__android_log_print(ANDROID_LOG_INFO, "Iup", "NewGlobalRef on ih->handle: %p", ih->handle);
 	}
 }
 
@@ -135,7 +135,7 @@ void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih)
 {
 	if(ih && ih->handle)
 	{
-		__android_log_print(ANDROID_LOG_INFO, "Iup", "DeleteGlobalRef on ih->handle: %x", ih->handle); 
+		__android_log_print(ANDROID_LOG_INFO, "Iup", "DeleteGlobalRef on ih->handle: %p", ih->handle);
 		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
 		ih->handle = NULL;
 	}
@@ -186,7 +186,7 @@ void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
 	jobject parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
 	jobject child_handle = ih->handle;
 	
-		__android_log_print(ANDROID_LOG_INFO, "iupAndroidAddWidgetToParent", "parent_native_handle:%x, ih->handle: %x", parent_native_handle, ih->handle); 
+		__android_log_print(ANDROID_LOG_INFO, "iupAndroidAddWidgetToParent", "parent_native_handle:%p, ih->handle: %p", parent_native_handle, ih->handle);
 
 
 	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
