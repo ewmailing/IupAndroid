@@ -71,4 +71,6 @@ typedef char* (*sIFniis)(Ihandle*, int, int, char*);  /* translatevalue_cb */
 typedef double (*dIFnii)(Ihandle*, int, int);  /* numericgetvalue_cb */
 typedef int    (*IFniid)(Ihandle*, int, int, double);  /* numericsetvalue_cb */
 
+typedef void (*IFniiv)(Ihandle*, int, int, void*);  /* android_onactivityresult_cb */
+
 #endif

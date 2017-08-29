@@ -160,6 +160,16 @@ public class IupActivity extends Activity
 	}
 */
 
+	native protected void OnActivityResult(int request_code, int result_code, Intent intent_data);
+	// Things like in-app-purchases need to hook into this callback so we must expose it for IupAndroid users.
+	@Override
+	protected void onActivityResult(int request_code, int result_code, Intent intent_data)
+	{
+		super.onActivityResult(request_code, result_code, intent_data);
+		// Pass on the activity result to the helper for handling
+		this.OnActivityResult(request_code, result_code, intent_data);
+	}
+
 	@Override
 	public void finish()
 	{

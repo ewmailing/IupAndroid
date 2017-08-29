@@ -3,6 +3,8 @@
 #include <stdint.h>
 
 #include "iup.h"
+#include "iupcbs.h"
+
 #include "iup_object.h"
 #include "iup_attrib.h"
 #include "iupandroid_drv.h"
@@ -60,11 +62,11 @@ JNIEXPORT jstring JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribGe
 }
 
 
-/* IUP returns -1 through -4 for callbacks. I also return 0 if no callback is registered. */
+/* IUP returns -1 through -4 for callbacks. I also return -15 if no callback is registered. I picked -15 because I wanted to leave >=0 for users and wanted to leave IUP space to expand. */
 JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string)
 {
 
-	int ret_val = 0;
+	int ret_val = -15;
 	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
 	if(ih)
 	{
