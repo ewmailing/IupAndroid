@@ -25,45 +25,108 @@
 
 static char* androidWebBrowserGetItemHistoryAttrib(Ihandle* ih, int index)
 {
-    return NULL;
+	char* return_str = NULL;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getItemHistoryAtIndex", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;I)Ljava/lang/String;");
+
+	jobject web_view = (jobject)ih->handle;
+	jint j_index = (jint)index;
+
+	jstring j_url = (jstring) ((*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, web_view, j_index));
+	if(NULL != j_url)
+	{
+		const char* c_url;
+		c_url = (*jni_env)->GetStringUTFChars(jni_env, j_url, NULL);
+		return_str = iupStrReturnStr(c_url);
+		(*jni_env)->ReleaseStringUTFChars(jni_env, j_url, c_url);
+		(*jni_env)->DeleteLocalRef(jni_env, j_url);
+	}
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	return return_str;
 }
 
 static char* androidWebBrowserGetForwardCountAttrib(Ihandle* ih)
 {
-	int item_count = 0;
-	return iupStrReturnInt(item_count);
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getForwardCount", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)I");
+	jobject web_view = (jobject)ih->handle;
+	jint j_item_count = (*jni_env)->CallStaticIntMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	return iupStrReturnInt((int)j_item_count);
 }
 
 static char* androidWebBrowserGetBackCountAttrib(Ihandle* ih)
 {
-	int item_count = 0;
-	return iupStrReturnInt(item_count);
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getBackCount", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)I");
+	jobject web_view = (jobject)ih->handle;
+	jint j_item_count = (*jni_env)->CallStaticIntMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	return iupStrReturnInt((int)j_item_count);
 }
 
 static int androidWebBrowserSetHTMLAttrib(Ihandle* ih, const char* value)
 {
 	if(value)
 	{
+		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+		jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+		jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "loadHtmlString", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;Ljava/lang/String;)V");
+
+		jstring java_string = (*jni_env)->NewStringUTF(jni_env, value);
+		jobject web_view = (jobject)ih->handle;
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view, java_string);
+
+		(*jni_env)->DeleteLocalRef(jni_env, java_string);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
 	}
 	return 0; /* do not store value in hash table */
 }
 
-
+#if 1
+// Not really sure if this can work or how reliable it is:
+// https://stackoverflow.com/questions/6058843/android-how-to-select-texts-from-webview
+// https://stackoverflow.com/questions/41477548/how-to-copy-the-selected-text-to-clipboard-dynamically-using-android-webview
+// https://github.com/btate/BTAndroidWebViewSelection
+// https://stackoverflow.com/questions/34804100/how-to-get-the-selected-text-of-webview-in-actionmode-override
 static int androidWebBrowserSetCopyAttrib(Ihandle* ih, const char* value)
 {
 	(void)value;
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "copySelectionToClipboard", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 	return 0;
 }
+#endif
 
+#if 0
+// Not sure if this can work:
+// https://stackoverflow.com/questions/11881824/android-programatically-trigger-text-selection-mode-in-a-webview-on-jelly-bean?rq=1
+// http://devemat-androidprogramming.blogspot.com/2011/06/selecting-text-with-webview.html
 static int androidWebBrowserSetSelectAllAttrib(Ihandle* ih, const char* value)
 {
 	(void)value;
 	return 0;
 }
+#endif
 
 static int androidWebBrowserSetPrintAttrib(Ihandle* ih, const char* value)
 {
 	(void)value;
+
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "print", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
 	return 0;
 }
 
@@ -90,18 +153,69 @@ static char* androidWebBrowserGetZoomAttrib(Ihandle* ih)
 */
 static char* androidWebBrowserGetStatusAttrib(Ihandle* ih)
 {
-	return "LOADING";
-//	return "COMPLETED";
-//	return "FAILED";
+	char* return_str = NULL;
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getLoadStatus", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)I");
+
+	jint j_int_status = (*jni_env)->CallStaticIntMethod(jni_env, java_class, method_id, web_view);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	/*
+	private static final int LoadStatusFinished = 0;
+	private static final int LoadStatusFailed = 1;
+	private static final int LoadStatusLoading = 2;
+	*/
+	switch(j_int_status)
+	{
+		case 0:
+		{
+			return_str = "COMPLETED";
+			break;
+		}
+		case 2:
+		{
+			return_str = "LOADING";
+			break;
+		}
+		case 1:
+		default:
+		{
+			return_str = "FAILED";
+			break;
+		}
+	}
+
+	return return_str;
 }
 
 static int androidWebBrowserSetReloadAttrib(Ihandle* ih, const char* value)
 {
+	(void)value;
+
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "reload", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
 	return 0; /* do not store value in hash table */
 }
 
 static int androidWebBrowserSetStopAttrib(Ihandle* ih, const char* value)
 {
+	(void)value;
+
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "stopLoading", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
 	return 0; /* do not store value in hash table */
 }
 
@@ -110,6 +224,13 @@ static int androidWebBrowserSetBackForwardAttrib(Ihandle* ih, const char* value)
 	int val;
 	if(iupStrToInt(value, &val))
 	{
+		jint j_val = (jint)val;
+		jobject web_view = ih->handle;
+		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+		jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+		jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "goBackOrForward", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;I)V");
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view, j_val);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
 	}
 	return 0; /* do not store value in hash table */
 }
@@ -122,7 +243,6 @@ static int androidWebBrowserSetValueAttrib(Ihandle* ih, const char* value)
 		jclass java_class;
 		jmethodID method_id;
 		char* attribute_value;
-			__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserSetHTMLAttrib", "url: %s", value); 
 
 		jni_env = iupAndroid_GetEnvThreadSafe();
 
@@ -148,10 +268,79 @@ static int androidWebBrowserSetValueAttrib(Ihandle* ih, const char* value)
 
 static char* androidWebBrowserGetValueAttrib(Ihandle* ih)
 {
-	const char* c_url = "";
-	return iupStrReturnStr(c_url);
+	char* return_str = NULL;
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getUrl", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)Ljava/lang/String;");
+
+	jstring j_url = (jstring) ((*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, web_view));
+	if(NULL != j_url)
+	{
+		const char *c_url;
+		c_url = (*jni_env)->GetStringUTFChars(jni_env, j_url, NULL);
+		return_str = iupStrReturnStr(c_url);
+		(*jni_env)->ReleaseStringUTFChars(jni_env, j_url, c_url);
+		(*jni_env)->DeleteLocalRef(jni_env, j_url);
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return return_str;
+
 }
 
+
+
+static char* androidWebBrowserCanGoBackAttrib(Ihandle* ih)
+{
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "canGoBack", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)Z");
+	jobject web_view = (jobject)ih->handle;
+	jboolean is_true = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static char* androidWebBrowserCanGoForwardAttrib(Ihandle* ih)
+{
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "canGoForward", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)Z");
+	jobject web_view = (jobject)ih->handle;
+	jboolean is_true = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	return iupStrReturnBoolean((int)is_true);
+}
+
+static int androidWebBrowserSetBackAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "goBack", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0; /* do not store value in hash table */
+}
+
+static int androidWebBrowserSetForwardAttrib(Ihandle* ih, const char* value)
+{
+	(void)value;
+
+	jobject web_view = ih->handle;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iupweb/IupWebViewHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "goForward", "(Lbr/pucrio/tecgraf/iupweb/IupWebView;)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, web_view);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0; /* do not store value in hash table */
+}
 
 /*********************************************************************************************/
 
@@ -175,7 +364,6 @@ static int androidWebBrowserMapMethod(Ihandle* ih)
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
-			__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserMapMethod", "got webview: %x", ih->handle); 
 
 		(*jni_env)->DeleteLocalRef(jni_env, java_widget);
 		(*jni_env)->DeleteLocalRef(jni_env, java_class);
@@ -290,7 +478,7 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "HTML", NULL, androidWebBrowserSetHTMLAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "STATUS", androidWebBrowserGetStatusAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "COPY", NULL, androidWebBrowserSetCopyAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "SELECTALL", NULL, androidWebBrowserSetSelectAllAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
+//  iupClassRegisterAttribute(ic, "SELECTALL", NULL, androidWebBrowserSetSelectAllAttrib, NULL, NULL, IUPAF_WRITEONLY | IUPAF_NO_INHERIT);
 #if 0
   iupClassRegisterAttribute(ic, "ZOOM", androidWebBrowserGetZoomAttrib, androidWebBrowserSetZoomAttrib, NULL, NULL, IUPAF_NO_INHERIT);
 #endif
@@ -300,5 +488,10 @@ Iclass* iupWebBrowserNewClass(void)
   iupClassRegisterAttribute(ic, "FORWARDCOUNT", androidWebBrowserGetForwardCountAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttributeId(ic, "ITEMHISTORY",  androidWebBrowserGetItemHistoryAttrib,  NULL, IUPAF_READONLY|IUPAF_NO_INHERIT);
 
-  return ic;
+  iupClassRegisterAttribute(ic, "CANGOBACK", androidWebBrowserCanGoBackAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "CANGOFORWARD", androidWebBrowserCanGoForwardAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
+
+  iupClassRegisterAttribute(ic, "GOBACK", NULL, androidWebBrowserSetBackAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+  iupClassRegisterAttribute(ic, "GOFORWARD", NULL, androidWebBrowserSetForwardAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
+	return ic;
 }
