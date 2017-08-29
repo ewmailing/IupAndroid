@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_doDestroy(JNIEnv* 
 }
 
 
-JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_onActivityResult(JNIEnv* jni_env, jobject thiz, jlong ihandle_ptr, jint request_code, jint result_code, jobject intent_data)
+JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupActivity_OnActivityResult(JNIEnv* jni_env, jobject thiz, jlong ihandle_ptr, jint request_code, jint result_code, jobject intent_data)
 {
 	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
 	if(ih)
