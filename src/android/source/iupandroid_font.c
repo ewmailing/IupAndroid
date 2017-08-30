@@ -63,13 +63,26 @@ int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
 
 void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
 {
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupFontHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getMultiLineStringSize", "(JLjava/lang/Object;ILjava/lang/String;)Landroid/graphics/Rect;");
+	jobject native_object = (jobject)ih->handle;
+	jstring java_string = (*jni_env)->NewStringUTF(jni_env, str);
+	jobject j_rect = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, native_object, 0, java_string);
+	(*jni_env)->DeleteLocalRef(jni_env, java_string);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 
-	int the_width = iupdrvFontGetStringWidth(ih, str);
+	java_class = (*jni_env)->GetObjectClass(jni_env, j_rect);
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "width", "()I");
+	jint j_width = (*jni_env)->CallIntMethod(jni_env, j_rect, method_id);
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "height", "()I");
+	jint j_height = (*jni_env)->CallIntMethod(jni_env, j_rect, method_id);
+	(*jni_env)->DeleteLocalRef(jni_env, j_rect);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetMultiLineStringSize", "the_width:%d j_height:%d", (int)j_width, (int)j_height);
 
-	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetMultiLineStringSize", "the_width:%d", the_width);
-
-  if (w) *w = the_width;
-	if (h) *h = 100;
+	if (w) *w = (int)j_width;
+	if (h) *h = (int)j_height;
 }
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
@@ -89,15 +102,24 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
 {
-	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetCharSize", "x:%d, y:%d, w:%d, h:%d", ih->x, ih->y, ih->currentwidth, ih->currentheight);
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupFontHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getCharSize", "(JLjava/lang/Object;I)Landroid/graphics/Rect;");
+	jobject native_object = (jobject)ih->handle;
+	jobject j_rect = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, native_object, 0);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 
-	int the_width = iupdrvFontGetStringWidth(ih, "WWWWWWWW");
+	java_class = (*jni_env)->GetObjectClass(jni_env, j_rect);
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "width", "()I");
+	jint j_width = (*jni_env)->CallIntMethod(jni_env, j_rect, method_id);
+	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "height", "()I");
+	jint j_height = (*jni_env)->CallIntMethod(jni_env, j_rect, method_id);
+	(*jni_env)->DeleteLocalRef(jni_env, j_rect);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetCharSize", "the_width:%d j_height:%d", (int)j_width, (int)j_height);
 
-	the_width = (int)((the_width/8.0)+0.5);
-	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetCharSize", "the_width:%d", the_width);
-
-  if (charwidth)  *charwidth = the_width;
-  if (charheight) *charheight = 100;
+	if (charwidth)  *charwidth = (int)j_width;
+	if (charheight) *charheight = (int)j_height;
 }
 
 void iupdrvFontInit(void)

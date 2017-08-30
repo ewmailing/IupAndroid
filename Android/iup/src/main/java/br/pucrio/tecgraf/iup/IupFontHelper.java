@@ -78,7 +78,138 @@ Log.i("Text dimensions", "Width: "+rect_result.width());
 		return rect_result.width();
 
 	}
-	
+
+	public static Rect getMultiLineStringSize(final long ihandle_ptr, Object native_object, int object_type, String str)
+	{
+
+
+		// If there is already a text view, use
+		// Paint the_paint = textView.getPaint();
+		//
+		IupApplication application_context = IupApplication.getIupApplication();
+		TextView text_view = new TextView(application_context);
+		//text_view.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+		//text_view.setSingleLine(false);
+
+		Paint the_paint = new Paint();
+		Typeface default_typeface = text_view.getTypeface();
+		the_paint.setTypeface(default_typeface);
+		// Yuck: getTextSize returns in different units than what setTextSize uses. We must manually convert.
+		float default_text_size = text_view.getTextSize();
+
+		// https://stackoverflow.com/questions/3687065/textview-settextsize-behaves-abnormally-how-to-set-text-size-of-textview-dynam
+		// https://stackoverflow.com/questions/6263250/convert-pixels-to-sp
+		float scaled_density = application_context.getResources().getDisplayMetrics().scaledDensity;
+
+
+
+
+		// I'm not sure which to use
+		/*
+		DisplayMetrics#scaledDensity
+
+A scaling factor for fonts displayed on the display. This is the same as density, except that it may be adjusted in smaller increments at runtime based on a user preference for the font size.
+DisplayMetrics#Density
+
+The logical density of the display. This is a scaling factor for the Density Independent Pixel unit, where one DIP is one pixel on an approximately 160 dpi screen.
+
+		 */
+		final float scaled_px = default_text_size * scaled_density;
+
+		the_paint.setTextSize(scaled_px);
+
+		Rect rect_result = new Rect();
+
+
+
+		Paint.FontMetrics font_metric = the_paint.getFontMetrics();
+//		float char_height = font_metric.descent - font_metric.ascent;
+		int char_height = (int)(font_metric.bottom - font_metric.top + font_metric.leading + 0.5);
+
+		int max_width = 0;
+		int running_height = 0;
+		String[] split_lines = str.split("\n");
+
+		for(int i=0; i < split_lines.length; i++)
+		{
+
+			the_paint.getTextBounds(split_lines[i], 0, split_lines[i].length(), rect_result);
+			if(rect_result.width() > max_width)
+			{
+				max_width = rect_result.width();
+			}
+
+
+
+
+			// running_height = running_height + rect_result.height();
+			running_height = running_height + char_height;
+		}
+
+
+		// y increases going down
+		rect_result.set(0, 0, max_width, running_height);
+
+
+		return rect_result;
+
+	}
+
+	// https://stackoverflow.com/questions/3654321/measuring-text-height-to-be-drawn-on-canvas-android
+	public static Rect getCharSize(final long ihandle_ptr, Object native_object, int object_type)
+	{
+
+		// If there is already a text view, use
+		// Paint the_paint = textView.getPaint();
+		//
+		IupApplication application_context = IupApplication.getIupApplication();
+		TextView text_view = new TextView(application_context);
+
+
+		Paint the_paint = new Paint();
+		Typeface default_typeface = text_view.getTypeface();
+		the_paint.setTypeface(default_typeface);
+		// Yuck: getTextSize returns in different units than what setTextSize uses. We must manually convert.
+		float default_text_size = text_view.getTextSize();
+
+		// https://stackoverflow.com/questions/3687065/textview-settextsize-behaves-abnormally-how-to-set-text-size-of-textview-dynam
+		// https://stackoverflow.com/questions/6263250/convert-pixels-to-sp
+		float scaled_density = application_context.getResources().getDisplayMetrics().scaledDensity;
+
+
+
+
+		// I'm not sure which to use
+		/*
+		DisplayMetrics#scaledDensity
+
+A scaling factor for fonts displayed on the display. This is the same as density, except that it may be adjusted in smaller increments at runtime based on a user preference for the font size.
+DisplayMetrics#Density
+
+The logical density of the display. This is a scaling factor for the Density Independent Pixel unit, where one DIP is one pixel on an approximately 160 dpi screen.
+
+		 */
+		final float scaled_px = default_text_size * scaled_density;
+
+		the_paint.setTextSize(scaled_px);
+
+		Rect rect_result = new Rect();
+		String str = "WWWWWWWW"; // 8 characters, divide by 8 later
+		the_paint.getTextBounds(str, 0, str.length(), rect_result);
+
+//		Log.i("Text dimensions", "Width: "+rect_result.width());
+
+		int char_width = (int)(rect_result.width()/8.0);
+
+		Paint.FontMetrics font_metric = the_paint.getFontMetrics();
+//		float char_height = font_metric.descent - font_metric.ascent;
+		int char_height = (int)(font_metric.bottom - font_metric.top + font_metric.leading + 0.5);
+
+		// y increases going down
+		rect_result.set(0, 0, char_width, char_height);
+
+		return rect_result;
+	}
 }
 
 
