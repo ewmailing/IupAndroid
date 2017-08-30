@@ -19,7 +19,10 @@
 #include "iup_drvfont.h"
 #include "iup_assert.h"
 
-//#include "iupmac_info.h"
+#include "iupandroid_drv.h"
+
+#include <jni.h>
+#include <android/log.h>
 
 
 
@@ -60,24 +63,41 @@ int iupdrvSetStandardFontAttrib(Ihandle* ih, const char* value)
 
 void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int *h)
 {
-	   return;
 
-//  if (w) *w = max_w;
-//	if (h) *h = max_h;
+	int the_width = iupdrvFontGetStringWidth(ih, str);
+
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetMultiLineStringSize", "the_width:%d", the_width);
+
+  if (w) *w = the_width;
+	if (h) *h = 100;
 }
 
 int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 {
-	
-	return 40;
-	
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupFontHelper");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getStringWidth", "(JLjava/lang/Object;ILjava/lang/String;)I");
+	jobject native_object = (jobject)ih->handle;
+	jstring java_string = (*jni_env)->NewStringUTF(jni_env, str);
+	jint j_width = (*jni_env)->CallStaticIntMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, native_object, 0, java_string);
+	(*jni_env)->DeleteLocalRef(jni_env, java_string);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetStringWidth", "the_width:%d", (int)j_width);
+
+	return ((int)j_width);
 }
 
 void iupdrvFontGetCharSize(Ihandle* ih, int *charwidth, int *charheight)
 {
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetCharSize", "x:%d, y:%d, w:%d, h:%d", ih->x, ih->y, ih->currentwidth, ih->currentheight);
 
-//  if (charwidth)  *charwidth = macfont->charwidth; 
-//  if (charheight) *charheight = macfont->charheight;
+	int the_width = iupdrvFontGetStringWidth(ih, "WWWWWWWW");
+
+	the_width = (int)((the_width/8.0)+0.5);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetCharSize", "the_width:%d", the_width);
+
+  if (charwidth)  *charwidth = the_width;
+  if (charheight) *charheight = 100;
 }
 
 void iupdrvFontInit(void)

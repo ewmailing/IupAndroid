@@ -215,68 +215,21 @@ void iupdrvReparent(Ihandle* ih)
 void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
 
-#if 0
-	id parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
-	NSView* parent_view = nil;
-	if([parent_native_handle isKindOfClass:[NSWindow class]])
-	{
-		NSWindow* parent_window = (NSWindow*)parent_native_handle;
-		parent_view = [parent_window contentView];
-	}
-	else if([parent_native_handle isKindOfClass:[NSView class]])
-	{
-		parent_view = (NSView*)parent_native_handle;
-	}
-	else
-	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
-	}
-	
-	
-	
-	id child_handle = ih->handle;
-	NSView* the_view = nil;
-	if([child_handle isKindOfClass:[NSView class]])
-	{
-		the_view = (NSView*)child_handle;
-	}
-	else if([child_handle isKindOfClass:[CALayer class]])
-	{
-		NSCAssert(1, @"CALayer not implemented");
-		@throw @"CALayer not implemented";
-	}
-	else
-	{
-		NSCAssert(1, @"Unexpected type for parent widget");
-		@throw @"Unexpected type for parent widget";
-	}
-	
-	
-//	iupgtkNativeContainerMove((GtkWidget*)parent, widget, x, y);
 
-//	iupgtkSetPosSize(GTK_CONTAINER(parent), widget, ih->x, ih->y, ih->currentwidth, ih->currentheight);
 
-	/*
-	CGSize fitting_size = [the_view fittingSize];
-	ih->currentwidth = fitting_size.width;
-	ih->currentheight = fitting_size.height;
-*/
-	
-	NSRect parent_rect = [parent_view frame];
+	jobject parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
+	jobject child_handle = ih->handle;
 
-	NSRect the_rect = NSMakeRect(
-		ih->x,
-		// Need to invert y-axis, and also need to shift/account for height of widget because that is also lower-left instead of upper-left.
-		parent_rect.size.height - ih->y - ih->currentheight,
-		ih->currentwidth,
-		ih->currentheight
-	);
-	[the_view setFrame:the_rect];
-//	[the_view setBounds:the_rect];
-	
-	
-#endif
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvBaseLayoutUpdateMethod", "parent_native_handle:%p, ih->handle: %p", parent_native_handle, ih->handle);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvBaseLayoutUpdateMethod", "x:%d, y:%d, w:%d, h:%d", ih->x, ih->y, ih->currentwidth, ih->currentheight);
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setWidgetPosition", "(Ljava/lang/Object;IIII)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, child_handle, ih->x, ih->y, ih->currentwidth, ih->currentheight);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
 }
 
 void iupdrvBaseUnMapMethod(Ihandle* ih)

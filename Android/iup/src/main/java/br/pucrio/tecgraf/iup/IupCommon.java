@@ -146,6 +146,36 @@ View child_view = null;
 	}
 
 
+	public static void setWidgetPosition(Object the_widget, int x, int y, int width, int height)
+	{
+
+		if(the_widget instanceof android.view.View)
+		{
+			View the_view = (View)the_widget;
+			RelativeLayout.LayoutParams layout_params = (RelativeLayout.LayoutParams)the_view.getLayoutParams();
+			Log.d("Java IupCommon setWidgetPosition", "child_view class name is: " + the_view.getClass().getName());
+			Log.d("Java IupCommon setWidgetPosition", "old leftMargin: " + layout_params.leftMargin);
+			Log.d("Java IupCommon setWidgetPosition", "old topMargin: " + layout_params.topMargin);
+			Log.d("Java IupCommon setWidgetPosition", "x: " + x + " y: " + y);
+
+			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
+			layout_params.leftMargin = x;
+			layout_params.topMargin = y;
+			layout_params.width = width;
+			layout_params.height = height;
+
+
+
+
+		}
+		else
+		{
+			Log.e("Java IupCommon setWidgetPosition", "the_widget is unsupported type");
+		}
+
+
+	}
+
     public native static String nativeIupAttribGet(long ihandle_ptr, String key_string);
     public static String iupAttribGet(long ihandle_ptr, String key_string)
 	{
