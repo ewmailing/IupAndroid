@@ -79,7 +79,7 @@ void iupdrvFontGetMultiLineStringSize(Ihandle* ih, const char* str, int *w, int 
 	jint j_height = (*jni_env)->CallIntMethod(jni_env, j_rect, method_id);
 	(*jni_env)->DeleteLocalRef(jni_env, j_rect);
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
-	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetMultiLineStringSize", "the_width:%d j_height:%d", (int)j_width, (int)j_height);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetMultiLineStringSize", "the_width:%d j_height:%d, for str=%s", (int)j_width, (int)j_height, str);
 
 	if (w) *w = (int)j_width;
 	if (h) *h = (int)j_height;
@@ -95,7 +95,7 @@ int iupdrvFontGetStringWidth(Ihandle* ih, const char* str)
 	jint j_width = (*jni_env)->CallStaticIntMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, native_object, 0, java_string);
 	(*jni_env)->DeleteLocalRef(jni_env, java_string);
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
-	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetStringWidth", "the_width:%d", (int)j_width);
+	__android_log_print(ANDROID_LOG_INFO, "iupdrvFontGetStringWidth", "the_width:%d for str:%s", (int)j_width, str);
 
 	return ((int)j_width);
 }

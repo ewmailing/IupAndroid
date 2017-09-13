@@ -4,8 +4,8 @@
  * See Copyright Notice in "iup.h"
  */
  
-#ifndef __IUPAndroid_DRV_H 
-#define __IUPAndroid_DRV_H
+#ifndef __IUPANDROID_DRV_H
+#define __IUPANDROID_DRV_H
 
 #ifdef __cplusplus
 extern "C" {

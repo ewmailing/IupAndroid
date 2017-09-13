@@ -27,6 +27,50 @@
 #include "iup_childtree.h"
 
 #include "iupandroid_drv.h"
+#include <android/log.h>
+#include <jni.h>
+
+typedef enum
+{
+	IUPANDROIDLABELSUBTYPE_UNKNOWN = -1,
+	IUPANDROIDLABELSUBTYPE_SEP_HORIZONTAL,
+	IUPANDROIDLABELSUBTYPE_SEP_VERTICAL,
+	IUPANDROIDLABELSUBTYPE_IMAGE,
+	IUPANDROIDLABELSUBTYPE_TEXT,
+} IupAndroidLabelSubType;
+
+/*
+ Each IUP list subtype requires a completely different Cocoa native widget.
+ This function provides a consistent and centralized way to distinguish which subtype we need.
+ */
+static IupAndroidLabelSubType androidTextGetSubType(Ihandle* ih)
+{
+	switch(ih->data->type)
+	{
+		case IUP_LABEL_SEP_HORIZ:
+		{
+			return IUPANDROIDLABELSUBTYPE_SEP_HORIZONTAL;
+		}
+		case IUP_LABEL_SEP_VERT:
+		{
+			return IUPANDROIDLABELSUBTYPE_SEP_VERTICAL;
+		}
+		case IUP_LABEL_IMAGE:
+		{
+			return IUPANDROIDLABELSUBTYPE_IMAGE;
+		}
+		case IUP_LABEL_TEXT:
+		{
+			return IUPANDROIDLABELSUBTYPE_TEXT;
+		}
+		default:
+		{
+			return IUPANDROIDLABELSUBTYPE_UNKNOWN;
+		}
+	}
+
+	return IUPANDROIDLABELSUBTYPE_UNKNOWN;
+}
 
 
 void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
@@ -36,26 +80,117 @@ void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
   (void)y;
 }
 
+
 static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
-/*
-	id the_label = ih->handle;
-	if(the_label)
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jmethodID method_id = NULL;
+	char* attribute_value = NULL;
+	jobject java_widget = NULL;
+
+	if(NULL == value)
 	{
-
+		value = "";
 	}
-*/
-	return 1;
 
+
+	IupAndroidLabelSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDLABELSUBTYPE_TEXT:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setText", "(JLandroid/widget/TextView;Ljava/lang/String;)V");
+
+			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
+
+			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle,
+					j_string
+
+			);
+
+			(*jni_env)->DeleteLocalRef(jni_env, j_string);
+
+
+			break;
+		}
+
+
+		default:
+		{
+			break;
+		}
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0; // not sure, 0 or 1?
+}
+
+static char* androidLabelGetTitleAttrib(Ihandle* ih)
+{
+	char* value = NULL;
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jmethodID method_id = NULL;
+
+
+	IupAndroidLabelSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDLABELSUBTYPE_TEXT:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getText",
+					"(JLandroid/widget/TextView;)Ljava/lang/String;");
+			jstring j_string = (jstring)(*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t)ih,
+					(jobject)ih->handle
+			);
+
+
+			const char* c_string = (*jni_env)->GetStringUTFChars(jni_env, j_string, NULL);
+			if(NULL != c_string)
+			{
+				value = iupStrReturnStr(c_string);
+			}
+			else
+			{
+				value = NULL;
+			}
+
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_string, c_string);
+			(*jni_env)->DeleteLocalRef(jni_env, j_string);
+
+
+			break;
+		}
+
+		default:
+		{
+			break;
+		}
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+	return value;
 }
 
 static int androidLabelMapMethod(Ihandle* ih)
 {
-#if 0
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jmethodID method_id = NULL;
+//	char* attribute_value = NULL;
+	jobject java_widget = NULL;
+
 	char* value;
 	// using id because we may be using different types depending on the case
-	id the_label = nil;
-	
+
 	value = iupAttribGet(ih, "SEPARATOR");
 	if (value)
 	{
@@ -63,20 +198,13 @@ static int androidLabelMapMethod(Ihandle* ih)
 		{
 			ih->data->type = IUP_LABEL_SEP_HORIZ;
 
-//			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 250.0, 1.0)];
-			NSBox* horizontal_separator= [[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 250.0, 1.0)];
-			[horizontal_separator setBoxType:NSBoxSeparator];
-			the_label = horizontal_separator;
+
 			
 		}
 		else /* "VERTICAL" */
 		{
 			ih->data->type = IUP_LABEL_SEP_VERT;
 
-//			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(20.0, 20.0, 1.0, 250.0)];
-			NSBox* vertical_separator=[[NSBox alloc] initWithFrame:NSMakeRect(0.0, 0.0, 1.0, 250.0)];
-			[vertical_separator setBoxType:NSBoxSeparator];
-			the_label = vertical_separator;
 
 		}
 	}
@@ -103,76 +231,56 @@ static int androidLabelMapMethod(Ihandle* ih)
 			}
 			
 			
-			id the_bitmap;
-			the_bitmap = iupImageGetImage(name, ih, make_inactive);
-			int width;
-			int height;
-			int bpp;
-			
-			iupdrvImageGetInfo(the_bitmap, &width, &height, &bpp);
 
-//			static int woffset = 0;
-//			static int hoffset = 0;
-			
-			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
-//			NSImageView* image_view = [[NSImageView alloc] initWithFrame:NSMakeRect(woffset, hoffset, width, height)];
-			[image_view setImage:the_bitmap];
-			
-//			woffset += 30;
-//			hoffset += 30;
-			
-			the_label = image_view;
-			
-#if 0
-			if (!the_bitmap)
-					return;
-			
-			/* must use this info, since image can be a driver image loaded from resources */
-			iupdrvImageGetInfo(hBitmap, &width, &height, &bpp);
-
-			
-			NSBitmapImageRep* bitmap_image = [[NSBitmapImageRep alloc]
-									 initWithBitmapDataPlanes:NULL
-									 pixelsWide: width
-									 pixelsHigh: height
-									 bitsPerSample: 8
-									 samplesPerPixel: 4
-									 hasAlpha: YES
-									 isPlanar: NO
-									 colorSpaceName: NSCalibratedRGBColorSpace
-									 bytesPerRow: width * 4
-									 bitsPerPixel: 32]
-#endif
 
 		}
 		else
 		{
 			ih->data->type = IUP_LABEL_TEXT;
 
-			the_label = [[NSTextField alloc] initWithFrame:NSZeroRect];
-//			the_label = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
 
-			[the_label setBezeled:NO];
-			[the_label setDrawsBackground:NO];
-			[the_label setEditable:NO];
-//			[the_label setSelectable:NO];
-			// TODO: FEATURE: I think this is really convenient for users so it should be the default
-			[the_label setSelectable:YES];
-			
-			NSFont* the_font = [the_label font];
-			NSLog(@"font %@", the_font);
-		
+
+
+
+
+
+					method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createLabelText",
+															  "(J)Landroid/widget/TextView;");
+					java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+																	 (jlong) (intptr_t) ih);
+
+
+
+
+
+
+
+
+
+
+
+			}
+
+
+
 		
 		}
-	}
-	
-	if (!the_label)
+
+
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	if(!java_widget)
 	{
 		return IUP_ERROR;
 	}
-	
-	
-	ih->handle = the_label;
+
+	ih->handle = (jobject) ((*jni_env)->NewGlobalRef(jni_env, java_widget));
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_widget);
+
+	iupAndroid_AddWidgetToParent(jni_env, ih);
+
 
 	
 	
@@ -182,28 +290,38 @@ static int androidLabelMapMethod(Ihandle* ih)
 	
 //	Ihandle* ih_parent = ih->parent;
 //	id parent_native_handle = ih_parent->handle;
-	
-	iupandroidAddToParent(ih);
-	
+
+	iupAndroid_AddWidgetToParent(jni_env, ih);
+
 	
 	/* configure for DRAG&DROP of files */
 	if (IupGetCallback(ih, "DROPFILES_CB"))
 	{
 		iupAttribSet(ih, "DROPFILESTARGET", "YES");
 	}
-#endif	
+
 	return IUP_NOERROR;
 }
 
 
 static void androidLabelUnMapMethod(Ihandle* ih)
 {
-	/*
-	id the_label = ih->handle;
-	[the_label release];
-	ih->handle = nil;
-	*/
+	if(ih && ih->handle)
+	{
+		JNIEnv* jni_env;
+		jclass java_class;
+		jmethodID method_id;
+		jni_env = iupAndroid_GetEnvThreadSafe();
 
+		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
+		ih->handle = NULL;
+	}
 }
 
 void iupdrvLabelInitClass(Iclass* ic)
@@ -226,8 +344,8 @@ void iupdrvLabelInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "FGCOLOR", NULL, iupdrvBaseSetFgColorAttrib, IUPAF_SAMEASSYSTEM, "DLGFGCOLOR", IUPAF_DEFAULT);
 	
 #endif
-	
-//  iupClassRegisterAttribute(ic, "TITLE", NULL, androidLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
+	iupClassRegisterAttribute(ic, "TITLE", androidLabelGetTitleAttrib, androidLabelSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
 
 
 #if 0

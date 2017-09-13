@@ -29,7 +29,38 @@
 
 #include "iupandroid_drv.h"
 
+#include <android/log.h>
 
+
+
+typedef enum
+{
+	IUPANDROIDTEXTSUBTYPE_UNKNOWN = -1,
+	IUPANDROIDTEXTSUBTYPE_FIELD,
+	IUPANDROIDTEXTSUBTYPE_VIEW,
+	IUPANDROIDTEXTSUBTYPE_STEPPER,
+} IupAndroidTextSubType;
+
+/*
+ Each IUP list subtype requires a completely different Cocoa native widget.
+ This function provides a consistent and centralized way to distinguish which subtype we need.
+ */
+static IupAndroidTextSubType androidTextGetSubType(Ihandle* ih)
+{
+	if(ih->data->is_multiline)
+	{
+		return IUPANDROIDTEXTSUBTYPE_VIEW;
+	}
+	else if(iupAttribGetBoolean(ih, "SPIN"))
+	{
+		return IUPANDROIDTEXTSUBTYPE_STEPPER;
+	}
+	else
+	{
+		return IUPANDROIDTEXTSUBTYPE_FIELD;
+	}
+	return IUPANDROIDTEXTSUBTYPE_UNKNOWN;
+}
 
 
 void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
@@ -41,7 +72,15 @@ void iupdrvTextAddSpin(Ihandle* ih, int *w, int h)
 void iupdrvTextAddBorders(Ihandle* ih, int *x, int *y)
 {
 
-	
+	if(x)
+	{
+		*x += 10;
+	}
+	if(y)
+	{
+		*y += 10;
+	}
+
 }
 
 
@@ -78,173 +117,198 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 }
 
 
+static int androidTextSetValueAttrib(Ihandle* ih, const char* value)
+{
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+	char* attribute_value = NULL;
+	jobject java_widget = NULL;
+
+	if(NULL == value)
+	{
+		value = "";
+	}
+
+	__android_log_print(ANDROID_LOG_INFO, "androidTextSetValueAttrib", "str: %s", value);
+	IupAndroidTextSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDTEXTSUBTYPE_VIEW:
+		case IUPANDROIDTEXTSUBTYPE_FIELD:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setText", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
+
+			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
+
+			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
+				(jlong)(intptr_t) ih,
+					(jobject)ih->handle,
+					j_string
+
+			);
+
+			(*jni_env)->DeleteLocalRef(jni_env, j_string);
+
+
+			break;
+		}
+
+		case IUPANDROIDTEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0;
+}
+
+static char* androidTextGetValueAttrib(Ihandle* ih)
+{
+	char* value = NULL;
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+
+
+	IupAndroidTextSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDTEXTSUBTYPE_VIEW:
+		case IUPANDROIDTEXTSUBTYPE_FIELD:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getText",
+													  "(JLandroid/widget/EditText;)Ljava/lang/String;");
+			jstring j_string = (jstring)(*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t)ih,
+					(jobject)ih->handle
+			);
+
+
+			const char* c_string = (*jni_env)->GetStringUTFChars(jni_env, j_string, NULL);
+			if(NULL != c_string)
+			{
+				value = iupStrReturnStr(c_string);
+			}
+			else
+			{
+				value = NULL;
+			}
+
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_string, c_string);
+			(*jni_env)->DeleteLocalRef(jni_env, j_string);
+
+
+			break;
+		}
+		case IUPANDROIDTEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+	return value;
+}
+
+
 
 
 static int androidTextMapMethod(Ihandle* ih)
 {
-#if 0
-	NSView* the_view;
-	
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+	char* attribute_value = NULL;
+	jobject java_widget = NULL;
+
+
 
 	
-	if (ih->data->is_multiline)
+	if(ih->data->is_multiline)
 	{
-//		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSZeroRect];
-		NSTextView* text_view = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 400, 400)];
-		the_view = text_view;
-		
 
-		int wordwrap = 0;
-		
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createMultiLineText",
+												  "(J)Landroid/widget/EditText;");
+		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+														 (jlong) (intptr_t) ih);
 
+		ih->handle = (jobject) ((*jni_env)->NewGlobalRef(jni_env, java_widget));
+		__android_log_print(ANDROID_LOG_INFO, "androidTextMapMethod", "got multiline text: %p",
+							ih->handle);
 
-		
-		/* formatting is always supported when MULTILINE=YES */
-		ih->data->has_formatting = 1;
-		
-		if (iupAttribGetBoolean(ih, "WORDWRAP"))
-		{
-			wordwrap = 1;
-			ih->data->sb &= ~IUP_SB_HORIZ;  /* must remove the horizontal scroolbar */
-			
-			
+	}
+	else if(iupAttribGetBoolean(ih, "SPIN"))
+	{
+		// FIXME: This is just a single line text view. May need to change return type.
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createSpinnerText",
+												  "(J)Landroid/widget/EditText;");
+		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+														 (jlong) (intptr_t) ih);
 
-		}
-		else
-		{
-			NSSize layout_size = [text_view maxSize];
-			layout_size.width = layout_size.height;
-			[text_view setMaxSize:layout_size];
-			[[text_view textContainer] setWidthTracksTextView:NO];
-			[[text_view textContainer] setContainerSize:layout_size];
-			
-		}
-		
+		ih->handle = (jobject) ((*jni_env)->NewGlobalRef(jni_env, java_widget));
 	}
 	else
 	{
-		NSTextField* text_field;
-		
-		
-		// IMPORTANT: Secure text fields are not togglable in android
-		// It might be fakeable, however, since this is security related, mucking with it is ill-advised.
-		// Also Mac App Store may reject ill-advised things.
-		if(iupAttribGetBoolean(ih, "PASSWORD"))
-		{
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createSingleLineText",
+												  "(J)Landroid/widget/EditText;");
+		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+														 (jlong) (intptr_t) ih);
 
-			//text_field = [[NSSecureTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 140, 40)];
-			
-		}
-		else
-		{
-			
-			//text_field = [[NSTextField alloc] initWithFrame:NSZeroRect];
-			text_field = [[NSTextField alloc] initWithFrame:NSMakeRect(50, 50, 140, 40)];
-			
-			
-		}
-		the_view = text_field;
-
-
-		[text_field setPlaceholderString:@"Placeholder Text"];
-		
-		if(iupAttribGetBoolean(ih, "SPIN"))
-		{
-			// TODO: NSStepper
-			
-			/*
-			gtk_spin_button_set_numeric((GtkSpinButton*)ih->handle, FALSE);
-			gtk_spin_button_set_digits((GtkSpinButton*)ih->handle, 0);
-			
-			gtk_spin_button_set_wrap((GtkSpinButton*)ih->handle, iupAttribGetBoolean(ih, "SPINWRAP"));
-			
-			g_signal_connect(G_OBJECT(ih->handle), "value-changed", G_CALLBACK(gtkTextSpinValueChanged), ih);
-			g_signal_connect(G_OBJECT(ih->handle), "output", G_CALLBACK(gtkTextSpinOutput), ih);
-			
-			if (!iupAttribGetBoolean(ih, "SPINAUTO"))
-			{
-				g_signal_connect(G_OBJECT(ih->handle), "input", G_CALLBACK(gtkTextSpinInput), ih);
-				iupAttribSet(ih, "_IUPGTK_SPIN_NOAUTO", "1");
-			}
-			 */
-		}
-		else
-		{
-			
-		}
-		
-
-		/* formatting is never supported when MULTILINE=NO */
-		ih->data->has_formatting = 0;
-		
-		
-//		[text_field sizeToFit];
-
-
+		ih->handle = (jobject) ((*jni_env)->NewGlobalRef(jni_env, java_widget));
+		__android_log_print(ANDROID_LOG_INFO, "androidTextMapMethod", "got single line text: %p",
+							ih->handle);
 	}
-	
-	
-	
-	
-	
-	
-	ih->handle = the_view;
-	
-#if 0
-	// I'm using objc_setAssociatedObject/objc_getAssociatedObject because it allows me to avoid making subclasses just to hold ivars.
-	objc_setAssociatedObject(the_toggle, IHANDLE_ASSOCIATED_OBJ_KEY, (id)ih, OBJC_ASSOCIATION_ASSIGN);
-	// I also need to track the memory of the buttion action receiver.
-	// I prefer to keep the Ihandle the actual NSView instead of the receiver because it makes the rest of the implementation easier if the handle is always an NSView (or very small set of things, e.g. NSWindow, NSView, CALayer).
-	// So with only one pointer to deal with, this means we need our Toggle to hold a reference to the receiver object.
-	// This is generally not good android as Toggles don't retain their receivers, but this seems like the best option.
-	// Be careful of retain cycles.
-	IupandroidToggleReceiver* toggle_receiver = [[IupandroidToggleReceiver alloc] init];
-	[the_toggle setTarget:toggle_receiver];
-	[the_toggle setAction:@selector(myToggleClickAction:)];
-	// I *think* is we use RETAIN, the object will be released automatically when the Toggle is freed.
-	// However, the fact that this is tricky and I had to look up the rules (not to mention worrying about retain cycles)
-	// makes me think I should just explicitly manage the memory so everybody is aware of what's going on.
-	objc_setAssociatedObject(the_toggle, IUP_android_TOGGLE_RECEIVER_OBJ_KEY, (id)toggle_receiver, OBJC_ASSOCIATION_ASSIGN);
-	
-#endif
-	// All android views shoud call this to add the new view to the parent view.
-	iupandroidAddToParent(ih);
-	
-	
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_widget);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 
 
-#if 0
-	/* configure for DRAG&DROP */
-	if (IupGetCallback(ih, "DROPFILES_CB"))
-		iupAttribSet(ih, "DROPFILESTARGET", "YES");
-	
-	/* update a mnemonic in a label if necessary */
-	iupgtkUpdateMnemonic(ih);
-	
-	if (ih->data->formattags)
-		iupTextUpdateFormatTags(ih);
-#endif
 
-#endif
-		
-	
+
+
+
+
+	iupAndroid_AddWidgetToParent(jni_env, ih);
+
+
 	return IUP_NOERROR;
 }
 
 
 static void androidTextUnMapMethod(Ihandle* ih)
 {
-#if 0
-	id the_view = ih->handle;
-	/*
-	id text_receiver = objc_getAssociatedObject(the_view, IUP_android_TOGGLE_RECEIVER_OBJ_KEY);
-	objc_setAssociatedObject(the_view, IUP_android_TOGGLE_RECEIVER_OBJ_KEY, nil, OBJC_ASSOCIATION_ASSIGN);
-	[text_receiver release];
-	*/
-	[the_view release];
-	ih->handle = NULL;
-#endif
+	if(ih && ih->handle)
+	{
+		JNIEnv* jni_env;
+		jclass java_class;
+		jmethodID method_id;
+		jni_env = iupAndroid_GetEnvThreadSafe();
+
+		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+		(*jni_env)->DeleteGlobalRef(jni_env, ih->handle);
+		ih->handle = NULL;
+	}
+
 	
 }
 
@@ -267,7 +331,9 @@ void iupdrvTextInitClass(Iclass* ic)
 
   /* IupText only */
   iupClassRegisterAttribute(ic, "PADDING", iupTextGetPaddingAttrib, gtkTextSetPaddingAttrib, IUPAF_SAMEASSYSTEM, "0x0", IUPAF_NOT_MAPPED);
-  iupClassRegisterAttribute(ic, "VALUE", gtkTextGetValueAttrib, gtkTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#endif
+  iupClassRegisterAttribute(ic, "VALUE", androidTextGetValueAttrib, androidTextSetValueAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+#if 0
   iupClassRegisterAttribute(ic, "LINEVALUE", gtkTextGetLineValueAttrib, NULL, NULL, NULL, IUPAF_READONLY|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTEDTEXT", gtkTextGetSelectedTextAttrib, gtkTextSetSelectedTextAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SELECTION", gtkTextGetSelectionAttrib, gtkTextSetSelectionAttrib, NULL, NULL, IUPAF_NO_INHERIT);

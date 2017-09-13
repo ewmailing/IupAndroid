@@ -87,7 +87,14 @@ static const void* IUP_android_BUTTON_RECEIVER_OBJ_KEY = "IUP_android_BUTTON_REC
 void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 {
 
-	
+	if(x)
+	{
+		*x += 20;
+	}
+	if(y)
+	{
+		*y += 20;
+	}
 }
 
 static int androidButtonMapMethod(Ihandle* ih)

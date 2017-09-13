@@ -23,7 +23,7 @@
 #include "iup_drv.h"
 #include "iup_drvinfo.h"
 #include "iupandroid_drv.h"
-
+#include <android/log.h>
 
 void iupdrvAddScreenOffset(int *x, int *y, int add)
 {
@@ -33,6 +33,7 @@ void iupdrvAddScreenOffset(int *x, int *y, int add)
 // How is this different than iupdrvGetFullSize? Is this supposed to subtract the menu and dock?
 void iupdrvGetScreenSize(int *width, int *height)
 {
+	__android_log_print(ANDROID_LOG_ERROR, "iupdrvGetScreenSize", "FIXME: Not properly implemented");
 
 //	NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
 	
@@ -42,12 +43,19 @@ void iupdrvGetScreenSize(int *width, int *height)
 	//  int h_size = CGDisplayPixelsHigh(kCGDirectMainDisplay);
 //	if (width) *width = screen_rect.size.width;
 //	if (height) *height = screen_rect.size.height;
-	
+
+
+	// What do we do about device orientation?
+
+	if (width) *width = 1024;
+	if (height) *height = 1920;
 }
 
 void iupdrvGetFullSize(int *width, int *height)
 {
-#if 0
+	__android_log_print(ANDROID_LOG_ERROR, "iupdrvGetFullSize", "FIXME: Not properly implemented");
+
+	#if 0
 	NSRect screen_rect = [[NSScreen mainScreen] frame];
 	
 	// Points vs. Pixels in android
@@ -55,7 +63,13 @@ void iupdrvGetFullSize(int *width, int *height)
 	//  int h_size = CGDisplayPixelsHigh(kCGDirectMainDisplay);
 	if (width) *width = screen_rect.size.width;
 	if (height) *height = screen_rect.size.height;
-#endif
+	#endif
+
+
+	// What do we do about device orientation?
+
+	if (width) *width = 1024;
+	if (height) *height = 1920;
 }
 
 int iupdrvGetScreenDepth(void)

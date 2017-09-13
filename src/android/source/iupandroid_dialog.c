@@ -37,6 +37,10 @@
 #include <jni.h>
 #include <android/log.h>
 
+// REMOVE these
+#define TEMP_HARDCODED_WIDTH 1024
+#define TEMP_HARDCODED_HEIGHT 1920
+
 #if 0
 /*
 @interface NSWindow () 
@@ -145,9 +149,10 @@ int iupdrvDialogIsVisible(Ihandle* ih)
 
 void iupdrvDialogGetSize(Ihandle* ih, InativeHandle* handle, int *w, int *h)
 {
-	
-	if (w) *w = 1280;
-	if (h) *h = 720;
+	__android_log_print(ANDROID_LOG_ERROR, "iupdrvDialogGetSize", "iupdrvDialogGetSize is hardcoded");
+
+	if (w) *w = TEMP_HARDCODED_WIDTH;
+	if (h) *h = TEMP_HARDCODED_HEIGHT;
 }
 
 void iupdrvDialogSetVisible(Ihandle* ih, int visible)
@@ -270,6 +275,36 @@ void iupdrvDialogSetParent(Ihandle* ih, InativeHandle* parent)
 	
 }
 
+static char* androidDialogGetClientSizeAttrib(Ihandle *ih)
+{
+//	int width, height;
+
+	__android_log_print(ANDROID_LOG_ERROR, "androidDialogGetClientSizeAttrib", "FIXME: size is hardcoded");
+
+	return iupStrReturnIntInt(TEMP_HARDCODED_WIDTH, TEMP_HARDCODED_HEIGHT, 'x');
+}
+
+static int androidDialogSetMinSizeAttrib(Ihandle* ih, const char* value)
+{
+	__android_log_print(ANDROID_LOG_ERROR, "androidDialogSetMinSizeAttrib", "FIXME: size is hardcoded");
+
+	int min_w = TEMP_HARDCODED_WIDTH, min_h = TEMP_HARDCODED_HEIGHT;          /* MINSIZE default value */
+	iupStrToIntInt(value, &min_w, &min_h, 'x');
+
+	return iupBaseSetMinSizeAttrib(ih, value);
+}
+
+static int androidDialogSetMaxSizeAttrib(Ihandle* ih, const char* value)
+{
+	__android_log_print(ANDROID_LOG_ERROR, "androidDialogSetMaxSizeAttrib", "FIXME: size is hardcoded");
+
+	int max_w = TEMP_HARDCODED_WIDTH, max_h = TEMP_HARDCODED_HEIGHT;  /* MAXSIZE default value */
+	iupStrToIntInt(value, &max_w, &max_h, 'x');
+
+
+	return iupBaseSetMaxSizeAttrib(ih, value);
+}
+
 
 /****************************************************************
  Callbacks and Events
@@ -337,9 +372,11 @@ static int androidDialogMapMethod(Ihandle* ih)
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 	(*jni_env)->DeleteLocalRef(jni_env, current_activity);
 
-	
-	iupAttribSet(ih, "RASTERSIZE", "500x400");
-	
+
+//	iupAttribSet(ih, "RASTERSIZE", "100x100");
+	//	iupAttribSet(ih, "RASTERSIZE", "500x400");
+	iupAttribSet(ih, "RASTERSIZE", "1024x1920");
+
 
 	// This should be scrutinized:
 	// I don't know if I want GlobalRef the Android Activity here.
@@ -348,10 +385,12 @@ static int androidDialogMapMethod(Ihandle* ih)
 	// Maybe the close callback would allow me to free it.
 	// I also don't know what IupDestroy(dialog) means for an Activity.
 	// Update1: onDestroy gets called correctly even with GlobalRef, so I can call DeleteRef safely. This pattern works.
+	__android_log_print(ANDROID_LOG_ERROR, "androidDialogMapMethod", "hardcoding size (width, height)");
 
-//	ih->currentwidth = 200;
-//	ih->currentheight = 200;
-	
+	ih->currentwidth = TEMP_HARDCODED_WIDTH;
+	ih->currentheight = TEMP_HARDCODED_HEIGHT;
+	__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "end");
+
 	return IUP_NOERROR;
 
 }
@@ -384,6 +423,9 @@ static void androidDialogUnMapMethod(Ihandle* ih)
 
 static void androidDialogLayoutUpdateMethod(Ihandle* ih)
 {
+
+	ih->currentwidth = TEMP_HARDCODED_WIDTH;
+	ih->currentheight = TEMP_HARDCODED_HEIGHT;
 #if 0
 	if (ih->data->ignore_resize)
 		return;
@@ -407,7 +449,7 @@ void iupdrvDialogInitClass(Iclass* ic)
 	/* Driver Dependent Class methods */
 	ic->Map = androidDialogMapMethod;
 	ic->UnMap = androidDialogUnMapMethod;
-	ic->LayoutUpdate = androidDialogLayoutUpdateMethod;
+//	ic->LayoutUpdate = androidDialogLayoutUpdateMethod;
 		__android_log_print(ANDROID_LOG_INFO, "iupdrvDialogInitClass", "entered"); 
 
 #if 0
@@ -429,12 +471,13 @@ void iupdrvDialogInitClass(Iclass* ic)
 	
 	/* Visual */
 	iupClassRegisterAttribute(ic, "BGCOLOR", NULL, iupdrvBaseSetBgColorAttrib, "DLGBGCOLOR", NULL, IUPAF_DEFAULT);  /* force new default value */
-	
+	#endif
+
 	/* Base Container */
-	iupClassRegisterAttribute(ic, "CLIENTSIZE", gtkDialogGetClientSizeAttrib, iupDialogSetClientSizeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);  /* dialog is the only not read-only */
+	iupClassRegisterAttribute(ic, "CLIENTSIZE", androidDialogGetClientSizeAttrib, iupDialogSetClientSizeAttrib, NULL, NULL, IUPAF_NO_SAVE|IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);  /* dialog is the only not read-only */
+#if 0
 	iupClassRegisterAttribute(ic, "CLIENTOFFSET", gtkDialogGetClientOffsetAttrib, NULL, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_READONLY|IUPAF_NO_INHERIT);
 #endif
-	
 	
 	/* Special */
 	iupClassRegisterAttribute(ic, "TITLE", NULL, androidDialogSetTitleAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
@@ -445,8 +488,10 @@ void iupdrvDialogInitClass(Iclass* ic)
 	iupClassRegisterAttribute(ic, "BACKGROUND", NULL, gtkDialogSetBackgroundAttrib, IUPAF_SAMEASSYSTEM, "DLGBGCOLOR", IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "ICON", NULL, gtkDialogSetIconAttrib, NULL, NULL, IUPAF_IHANDLENAME|IUPAF_NO_INHERIT);
 	iupClassRegisterAttribute(ic, "FULLSCREEN", NULL, gtkDialogSetFullScreenAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "MINSIZE", NULL, gtkDialogSetMinSizeAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NO_INHERIT);
-	iupClassRegisterAttribute(ic, "MAXSIZE", NULL, gtkDialogSetMaxSizeAttrib, IUPAF_SAMEASSYSTEM, "65535x65535", IUPAF_NO_INHERIT);
+#endif
+	iupClassRegisterAttribute(ic, "MINSIZE", NULL, androidDialogSetMinSizeAttrib, IUPAF_SAMEASSYSTEM, "1x1", IUPAF_NO_INHERIT);
+	iupClassRegisterAttribute(ic, "MAXSIZE", NULL, androidDialogSetMaxSizeAttrib, IUPAF_SAMEASSYSTEM, "65535x65535", IUPAF_NO_INHERIT);
+#if 0
 	iupClassRegisterAttribute(ic, "SAVEUNDER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);  /* saveunder not supported in GTK */
 	
 	/* IupDialog Windows and GTK Only */
