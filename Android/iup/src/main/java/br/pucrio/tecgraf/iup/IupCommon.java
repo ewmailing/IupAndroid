@@ -83,7 +83,8 @@ View child_view = null;
 				ViewGroup.LayoutParams.WRAP_CONTENT
 			);
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
-			
+			Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (Activity)");
+
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
 			layout_params.leftMargin = 5;
 			layout_params.topMargin = 5;
@@ -102,7 +103,9 @@ View child_view = null;
 				ViewGroup.LayoutParams.WRAP_CONTENT
 			);
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
-			
+
+			Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (ViewGroup)");
+
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
 			layout_params.leftMargin = 20;
 			layout_params.topMargin = 20;
@@ -157,6 +160,7 @@ View child_view = null;
 			Log.d("Java IupCommon setWidgetPosition", "old leftMargin: " + layout_params.leftMargin);
 			Log.d("Java IupCommon setWidgetPosition", "old topMargin: " + layout_params.topMargin);
 			Log.d("Java IupCommon setWidgetPosition", "x: " + x + " y: " + y);
+			Log.d("Java IupCommon setWidgetPosition", "w: " + width + " h: " + height);
 
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
 			layout_params.leftMargin = x;
