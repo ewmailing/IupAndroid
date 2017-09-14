@@ -10,6 +10,7 @@
 #include <string.h>
 #include <memory.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "iup.h"
 #include "iupcbs.h"
@@ -225,6 +226,162 @@ static char* androidTextGetValueAttrib(Ihandle* ih)
 }
 
 
+static int androidTextSetCueBannerAttrib(Ihandle *ih, const char *value)
+{
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+	char* attribute_value = NULL;
+	jobject java_widget = NULL;
+
+	if(NULL == value)
+	{
+		value = "";
+	}
+
+	IupAndroidTextSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDTEXTSUBTYPE_VIEW:
+		case IUPANDROIDTEXTSUBTYPE_FIELD:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setCueBanner", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
+
+			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
+
+			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle,
+					j_string
+
+			);
+
+			(*jni_env)->DeleteLocalRef(jni_env, j_string);
+
+
+			break;
+		}
+
+		case IUPANDROIDTEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0;
+}
+
+static int androidTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
+{
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+
+	bool is_read_only = (bool)iupStrBoolean(value);
+
+	IupAndroidTextSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDTEXTSUBTYPE_VIEW:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setReadOnlyMultiLine", "(JLandroid/widget/EditText;Z)V");
+
+			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle,
+					is_read_only
+
+			);
+
+			break;
+		}
+		case IUPANDROIDTEXTSUBTYPE_FIELD:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setReadOnlySingleLine", "(JLandroid/widget/EditText;Z)V");
+
+			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle,
+					is_read_only
+
+			);
+
+
+
+			break;
+		}
+		case IUPANDROIDTEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return 0;
+}
+
+static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
+{
+	bool is_read_only = 0;
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jmethodID method_id = NULL;
+
+
+	IupAndroidTextSubType sub_type = androidTextGetSubType(ih);
+	switch(sub_type)
+	{
+		case IUPANDROIDTEXTSUBTYPE_VIEW:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlyMultiLine", "(JLandroid/widget/EditText;Z)V");
+
+			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle
+
+			);
+
+
+			break;
+		}
+		case IUPANDROIDTEXTSUBTYPE_FIELD:
+		{
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlySingleLine", "(JLandroid/widget/EditText;Z)V");
+
+			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
+					(jlong)(intptr_t) ih,
+					(jobject)ih->handle
+
+			);
+
+			break;
+		}
+		case IUPANDROIDTEXTSUBTYPE_STEPPER:
+		{
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return iupStrReturnBoolean(is_read_only);
+}
+
+
 
 
 static int androidTextMapMethod(Ihandle* ih)
@@ -342,7 +499,9 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "CARETPOS", gtkTextGetCaretPosAttrib, gtkTextSetCaretPosAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NO_SAVE|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "INSERT", NULL, gtkTextSetInsertAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "APPEND", NULL, gtkTextSetAppendAttrib, NULL, NULL, IUPAF_NOT_MAPPED|IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
-  iupClassRegisterAttribute(ic, "READONLY", gtkTextGetReadOnlyAttrib, gtkTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
+#endif
+  iupClassRegisterAttribute(ic, "READONLY", androidTextGetReadOnlyAttrib, androidTextSetReadOnlyAttrib, NULL, NULL, IUPAF_DEFAULT);
+#if 0
   iupClassRegisterAttribute(ic, "NC", iupTextGetNCAttrib, gtkTextSetNCAttrib, IUPAF_SAMEASSYSTEM, "0", IUPAF_NOT_MAPPED);
   iupClassRegisterAttribute(ic, "CLIPBOARD", NULL, gtkTextSetClipboardAttrib, NULL, NULL, IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "SCROLLTO", NULL, gtkTextSetScrollToAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
@@ -363,9 +522,12 @@ void iupdrvTextInitClass(Iclass* ic)
   iupClassRegisterAttribute(ic, "REMOVEFORMATTING", NULL, gtkTextSetRemoveFormattingAttrib, NULL, NULL, IUPAF_WRITEONLY|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "TABSIZE", NULL, gtkTextSetTabSizeAttrib, "8", NULL, IUPAF_DEFAULT);  /* force new default value */
   iupClassRegisterAttribute(ic, "PASSWORD", NULL, NULL, NULL, NULL, IUPAF_NO_INHERIT);
+#endif
 
+	iupClassRegisterAttribute(ic, "CUEBANNER", NULL, androidTextSetCueBannerAttrib, NULL, NULL, IUPAF_NO_DEFAULTVALUE|IUPAF_NO_INHERIT);
+
+#if 0
   /* Not Supported */
-  iupClassRegisterAttribute(ic, "CUEBANNER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
   iupClassRegisterAttribute(ic, "FILTER", NULL, NULL, NULL, NULL, IUPAF_NOT_SUPPORTED|IUPAF_NO_INHERIT);
 #endif
 	
