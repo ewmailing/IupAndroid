@@ -132,7 +132,8 @@ The logical density of the display. This is a scaling factor for the Density Ind
 
 		for(int i=0; i < split_lines.length; i++)
 		{
-
+			// TODO: Investigate this:
+			// https://stackoverflow.com/questions/7549182/android-paint-measuretext-vs-gettextbounds
 			the_paint.getTextBounds(split_lines[i], 0, split_lines[i].length(), rect_result);
 			if(rect_result.width() > max_width)
 			{
