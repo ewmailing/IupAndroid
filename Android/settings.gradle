@@ -1,1 +1,1 @@
-include ':iup', ':iupweb', ':iuptestapp', ':iuptestappwebbrowser'
+include ':iup', ':iupweb', ':iuptestapp', ':iuptestappwebbrowser', ':iuplua'
