@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 // Add a new entry to local.properties:
 // prebuilt_external_libs.dir=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32
@@ -14,27 +14,20 @@ android {
 	buildToolsVersion "25.0.2"
 
 	defaultConfig {
+		applicationId "br.pucrio.tecgraf.iuptestappwebbrowser"
 		minSdkVersion 14
 		targetSdkVersion 25
 		versionCode 1
 		versionName "1.0"
 
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-
-
 		externalNativeBuild {
 			cmake {
-				arguments "-DIUP_USE_LUA:BOOL=1",
-						"-DIUP_ANDROID_BUILD_IUPWEB=1",
-//						"-DLUA_DIR=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32/lua",
-//						"-DLUA_DIR=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32/lua",
+				arguments "-DIUP_ANDROID_BUILD_IUPWEB=1", 
+						"-DIUPLUA_ANDROID_BUILD_TEST_LIBRARY=1",
 //						"-DPREBUILT_LIBRARY_PATH=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32",
 						"-DPREBUILT_LIBRARY_PATH=" + prebuilt_library_path,
 						"-C../../CMakeModules/InitialCacheAndroid.cmake"
-//						"-DLUA_INCLUDE_PREFIX:PATH=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32",
-//						"-DLUA_INCLUDE_DIR:PATH=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32/lua/include",
-//						"-DLUA_LIBRARY:FILEPATH=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32/lua/libs/armeabi-v7a/liblua.so"
 				cFlags ""
 				cppFlags ""
 			}
@@ -45,36 +38,10 @@ android {
 			// libraries Gradle should build and package with your APK.
 //			abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
 //			abiFilters 'arm64-v8a', 'x86_64'
-			abiFilters 'armeabi-v7a', 'x86'
-//			abiFilters 'armeabi-v7a'
+//			abiFilters 'armeabi-v7a', 'x86'
+			abiFilters 'armeabi-v7a'
 //			abiFilters 'x86'
 //			abiFilters 'arm64-v8a'
-		}
-
-		packagingOptions {
-			exclude 'lib/armeabi/libiup.so'
-			exclude 'lib/armeabi/libiupimglib.so'
-			exclude 'lib/armeabi-v7a/libiup.so'
-			exclude 'lib/armeabi-v7a/libiupimglib.so'
-			exclude 'lib/armeabi-v7a/libiupweb.so'
-			exclude 'lib/x86/libiup.so'
-			exclude 'lib/x86/libiupimglib.so'
-			exclude 'lib/x86/libiupweb.so'
-			exclude 'lib/x86_64/libiup.so'
-			exclude 'lib/x86_64/libiupimglib.so'
-			exclude 'lib/x86_64/libiupweb.so'
-			exclude 'lib/arm64-v8a/libiup.so'
-			exclude 'lib/arm64-v8a/libiupimglib.so'
-			exclude 'lib/arm64-v8a/libiupweb.so'
-			exclude 'R.txt'
-			exclude 'res/anim/**'
-			exclude 'res/anim/iup_slide_from_left.xml'
-			exclude 'res/anim/*.xml'
-			exclude '/res/anim/**'
-			exclude '**/res/anim/**'
-
-
-
 		}
 	}
 	buildTypes {
@@ -91,11 +58,20 @@ android {
 }
 
 dependencies {
-//	compile project(':iupweb')
+
+	compile project(':iup')
+	compile project(':iupweb')
+//	compile project(':iuplua')
+
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	compile 'com.android.support:appcompat-v7:25.3.1'
 	testCompile 'junit:junit:4.12'
+}
+// needed to find local .aar's
+repositories {
+	flatDir{
+		dirs 'libs'
+	}
 }

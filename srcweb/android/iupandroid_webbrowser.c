@@ -263,6 +263,8 @@ static int androidWebBrowserSetValueAttrib(Ihandle* ih, const char* value)
 
 
 	}
+		__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserSetValueAttrib", "str:%s", value);
+	
 	return 0; /* do not store value in hash table */
 }
 
@@ -285,6 +287,7 @@ static char* androidWebBrowserGetValueAttrib(Ihandle* ih)
 	}
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+		__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserGetValueAttrib", "str:%s", return_str);
 
 	return return_str;
 
@@ -353,6 +356,7 @@ static int androidWebBrowserMapMethod(Ihandle* ih)
 	jobject java_widget;
 	char* attribute_value;
    
+		__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserMapMethod", "starting");
 	jni_env = iupAndroid_GetEnvThreadSafe();
 
 
@@ -376,7 +380,7 @@ static int androidWebBrowserMapMethod(Ihandle* ih)
 
 static void androidWebBrowserUnMapMethod(Ihandle* ih)
 {
-		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "starting");
+		__android_log_print(ANDROID_LOG_INFO, "androidWebBrowserUnMapMethod", "starting");
 
 
 	if(ih && ih->handle)
