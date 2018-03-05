@@ -79,10 +79,9 @@ Log.i("Text dimensions", "Width: "+rect_result.width());
 
 	}
 
-	public static Rect getMultiLineStringSize(final long ihandle_ptr, Object native_object, int object_type, String str)
+	// FIXME: This was originally getMultiLineStringSize, but quickly refactored to handle the GetTextSize api change. It is not clear to me if they should actually share the same routine.
+	private static Rect helperFontGetMultilineStringSize(Typeface type_face, String str)
 	{
-
-
 		// If there is already a text view, use
 		// Paint the_paint = textView.getPaint();
 		//
@@ -92,8 +91,14 @@ Log.i("Text dimensions", "Width: "+rect_result.width());
 		//text_view.setSingleLine(false);
 
 		Paint the_paint = new Paint();
-		Typeface default_typeface = text_view.getTypeface();
-		the_paint.setTypeface(default_typeface);
+
+		// Hack: Used for getMultiLineStringSize. getTextSize will supply a Typeface
+		if(null == type_face)
+		{
+			type_face = text_view.getTypeface();
+		}
+
+		the_paint.setTypeface(type_face);
 		// Yuck: getTextSize returns in different units than what setTextSize uses. We must manually convert.
 		float default_text_size = text_view.getTextSize();
 
@@ -153,7 +158,18 @@ The logical density of the display. This is a scaling factor for the Density Ind
 
 
 		return rect_result;
+	}
 
+	public static Rect getMultiLineStringSize(final long ihandle_ptr, Object native_object, int object_type, String str)
+	{
+		return helperFontGetMultilineStringSize(null, str);
+	}
+
+	public static Rect getTextSize(String font_name, String str)
+	{
+		// FIXME: I don't know what the font string name syntax is and if comes embedded with point size and emphasis instructions.
+		Typeface type_face = Typeface.create(font_name, Typeface.NORMAL);
+		return helperFontGetMultilineStringSize(type_face, str);
 	}
 
 	// https://stackoverflow.com/questions/3654321/measuring-text-height-to-be-drawn-on-canvas-android
