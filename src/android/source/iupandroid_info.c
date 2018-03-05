@@ -15,9 +15,10 @@
 
 #include <jni.h>
 #include <android/log.h>
-
+#include <stdarg.h>
 
 #include "iup.h"
+#include "iup_varg.h"
 
 #include "iup_str.h"
 #include "iup_drv.h"
@@ -313,5 +314,72 @@ int iupdrvGetWindowDecor(void* wnd, int *border, int *caption)
 	return 0;
 }
 
+
+void IupLogV(const char* type, const char* format, va_list arglist)
+{
+	int priority = ANDROID_LOG_DEFAULT;
+	/*
+	typedef enum android_LogPriority {
+		ANDROID_LOG_UNKNOWN = 0,
+		ANDROID_LOG_DEFAULT,    // only for SetMinPriority()
+		ANDROID_LOG_VERBOSE,
+		ANDROID_LOG_DEBUG,
+		ANDROID_LOG_INFO,
+		ANDROID_LOG_WARN,
+		ANDROID_LOG_ERROR,
+		ANDROID_LOG_FATAL,
+		ANDROID_LOG_SILENT,     // only for SetMinPriority(); must be last
+	} android_LogPriority;
+	*/
+
+	if (iupStrEqualNoCase(type, "DEBUG"))
+	{
+		priority = ANDROID_LOG_DEBUG;
+	}
+	else if (iupStrEqualNoCase(type, "ERROR"))
+	{
+		priority = ANDROID_LOG_ERROR;
+	}
+	else if (iupStrEqualNoCase(type, "WARNING"))
+	{
+		priority = ANDROID_LOG_WARN;
+	}
+	else if (iupStrEqualNoCase(type, "INFO"))
+	{
+		priority = ANDROID_LOG_INFO;
+	}
+
+	// Extras: (not officially documented)
+	else if (iupStrEqualNoCase(type, "FATAL"))
+	{
+		priority = ANDROID_LOG_FATAL;
+	}
+	else if (iupStrEqualNoCase(type, "SILENT"))
+	{
+		priority = ANDROID_LOG_SILENT;
+	}
+	else if (iupStrEqualNoCase(type, "UNKNOWN"))
+	{
+		priority = ANDROID_LOG_UNKNOWN;
+	}
+	else if (iupStrEqualNoCase(type, "DEFAULT"))
+	{
+		priority = ANDROID_LOG_DEFAULT;
+	}
+	else if (iupStrEqualNoCase(type, "VERBOSE"))
+	{
+		priority = ANDROID_LOG_VERBOSE;
+	}
+
+	__android_log_vprint(priority, "IupLog", format, arglist);
+}
+
+void IupLog(const char* type, const char* format, ...)
+{
+	va_list arglist;
+	va_start(arglist, format);
+	IupLogV(type, format, arglist);
+	va_end(arglist);
+}
 
 

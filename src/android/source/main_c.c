@@ -1,26 +1,19 @@
 #include "iup.h"
+#include "iup_varg.h"
+
 #include "iup_config.h"
 #include <stddef.h>
 #include <stdio.h>
 
-#if __ANDROID__
-#include <android/log.h>
+
 void MyPrintf(const char* fmt, ...)
 {
 	va_list ap;	
 	va_start(ap, fmt);
-	__android_log_vprint(ANDROID_LOG_INFO, "IupTest", fmt, ap);
+	IupLogV("DEBUG", fmt, ap);
 	va_end(ap);
 }
-#else
-void MyPrintf(const char* fmt, ...)
-{
-	va_list ap;	
-	va_start(ap, fmt);
-	fprintf(stderr, fmt, ap);
-	va_end(ap);
-}
-#endif
+
 int OnButtonCallback()
 {
 	MyPrintf("OnButtonCallback()\n");
@@ -65,16 +58,16 @@ void IupEntryPoint()
 		if(ret_val == 0)
 		{
 			const char* config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
-			printf("config value is %s\n", config_value);
+			MyPrintf("config value is %s\n", config_value);
 		}
 		else
 		{
-			printf("config file not found\n");
+			MyPrintf("config file not found\n");
 		}
 		IupConfigSetVariableStr(config_file, "Group1", "Key1", "Value1");
 		IupConfigSave(config_file);
 		config_value = IupConfigGetVariableStrDef(config_file, "Group1", "Key1", "");
-		printf("retrieved saved config value is %s\n", config_value);
+		MyPrintf("retrieved saved config value is %s\n", config_value);
 
 		IupDestroy(config_file);
 		config_file = NULL;
