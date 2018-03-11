@@ -8,6 +8,7 @@ buildscript {
 			dirs project(':iup').file('aars')
 		}
 
+		google()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:3.0.1'
@@ -20,9 +21,54 @@ buildscript {
 allprojects {
 	repositories {
 		jcenter()
+		google()
 	}
 }
 
 task clean(type: Delete) {
 	delete rootProject.buildDir
+}
+
+ext {
+	compileSdkVersion = 26
+	minSdkVersion = 14
+	targetSdkVersion = 26 // Make sure to update appCompat
+	versionCode = 1
+	versionName = "1.0"
+	abiFilters = fetchAbiFilters()
+	appCompat = 'com.android.support:appcompat-v7:26.1.0' // Note: This version must be in sync with the targetSdkVersion
+}
+
+
+// This allows an override in local.properties, e.g.
+// abiFilters=armeabi-v7a x86
+// If it is not found, then a default is provided.
+String[] fetchAbiFilters()
+{
+	def default_abi = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
+	def root_dir = project.rootDir
+	def local_properties = new File(root_dir, "local.properties")
+	if(local_properties.exists())
+	{
+		Properties properties = new Properties()
+		local_properties.withInputStream
+				{
+					instr -> properties.load(instr)
+				}
+		def the_value = properties.getProperty('abiFilters')
+		if(the_value)
+		{
+			the_value.split()
+		}
+		else
+		{
+			default_abi
+		}
+
+	}
+	else
+	{
+		println "Failed to find local.properties"
+		default_abi
+	}
 }
