@@ -23,6 +23,7 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 						"iuplua",
 						"iupweb",
 						"iup",
+						"lua"
 				};
 	}
 

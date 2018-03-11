@@ -14,16 +14,27 @@ android {
 	buildToolsVersion "27.0.3"
 
 	defaultConfig {
-		applicationId "br.pucrio.tecgraf.iuptestappwebbrowser"
+		applicationId "br.pucrio.tecgraf.iuptestapplua"
 		minSdkVersion 14
 		targetSdkVersion 26
 		versionCode 1
 		versionName "1.0"
 
-		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+
+		sourceSets {
+			main {
+				// We instruct CMake to copy liblua.so to Android/iuptestapplua/build/jniLibs
+				jniLibs.srcDirs = ['build/jniLibs']
+			}
+		}
+
+
 		externalNativeBuild {
 			cmake {
-				arguments "-DIUP_ANDROID_BUILD_IUPWEB=1", 
+				arguments "-DIUP_USE_LUA:BOOL=1",
+						"-DIUP_ANDROID_BUILD_IUPWEB=1",
 						"-DIUPLUA_ANDROID_BUILD_TEST_LIBRARY=1",
 //						"-DPREBUILT_LIBRARY_PATH=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32",
 						"-DPREBUILT_LIBRARY_PATH=" + prebuilt_library_path,
@@ -59,15 +70,15 @@ android {
 
 dependencies {
 
-	compile project(':iup')
-	compile project(':iupweb')
-//	compile project(':iuplua')
+	implementation project(':iup')
+	implementation project(':iupweb')
+	implementation project(':iuplua')
 
-	compile fileTree(dir: 'libs', include: ['*.jar'])
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
 	androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	testCompile 'junit:junit:4.12'
+//	testCompile 'junit:junit:4.12'
 }
 // needed to find local .aar's
 repositories {
