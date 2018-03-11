@@ -1,1 +1,20 @@
-include ':iup', ':iupweb', ':iuptestapp', ':iuptestappwebbrowser', ':iuplua', ':iuptestapplua'
+// If you want IupLua, you must have a pre-built Lua and you need to
+// Add a new entry to your local.properties:
+// prebuilt_external_libs.dir=/Users/ewing/Source/Blurrr/Release/BlurrrSDKApple/Libraries/SDK/Android/Lua_f32_i32
+// This should contain a lua directory with a layout like the old Android NDK "module" system, which contains include/ and libs/<arch>/liblua.so
+// where <arch> is armeabi-v7a, arm64-v8a, x86, x86_64, etc.
+// This path will be passed to CMake as -DPREBUILT_LIBRARY_PATH because the Android cross-compile chain disables the FIND_ system with CMAKE_PREFIX_PATH and friends.
+// This custom flag works in conjunction with our InitialCacheAndroid.cmake file which effectively restores the FIND_ behavior.
+
+include ':iup', ':iupweb', ':iuptestapp', ':iuptestappwebbrowser'
+
+Properties local_properties = new Properties()
+local_properties.load(new File('local.properties').newDataInputStream())
+def prebuilt_library_path = local_properties.getProperty('prebuilt_external_libs.dir')
+if(prebuilt_library_path) {
+	include ':iuplua', ':iuptestapplua'
+}
+else {
+	println "ATTENTION: To build IupLua, you must add an entry called prebuilt_external_libs.dir in local.properties. See settings.gradle for more info.\n"
+}
+
