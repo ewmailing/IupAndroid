@@ -43,6 +43,12 @@ public class IupLaunchActivity extends Activity
 		};
 	}
 
+	// When subclassing, do not call super.
+	public String getEntryPointLibraryName()
+	{
+		return "libMyIupProgram.so";
+	}
+
 	// Load the .so
 	public void loadLibraries()
 	{
@@ -70,37 +76,37 @@ public class IupLaunchActivity extends Activity
      * with this application.
      */
 //    public static native boolean doStaticActivityInit();
-    public native void IupEntry(IupLaunchActivity this_activity, String entry_function_name);
-    public native void doPause();
-    public native void doResume();
-    public native void doDestroy();
+	public native void IupEntry(IupLaunchActivity this_activity, String entry_function_name, String entry_library_name);
+	public native void doPause();
+	public native void doResume();
+	public native void doDestroy();
 
 	private boolean loadLibraryFailed = false;
 
-    /** Called when the activity is first created. */
+	/** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+	public void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 
-        // Load shared libraries
-        String error_msg = "";
-        try
+		// Load shared libraries
+		String error_msg = "";
+		try
 		{
-            loadLibraries();
-        }
+			loadLibraries();
+		}
 		catch(UnsatisfiedLinkError e)
 		{
-            System.err.println(e.getMessage());
+			System.err.println(e.getMessage());
             loadLibraryFailed = true;
-            error_msg = e.getMessage();
-        }
+			error_msg = e.getMessage();
+		}
 		catch(Exception e)
 		{
-            System.err.println(e.getMessage());
+			System.err.println(e.getMessage());
             loadLibraryFailed = true;
-            error_msg = e.getMessage();
-        }
+			error_msg = e.getMessage();
+		}
 
 		if(loadLibraryFailed)
 		{
@@ -141,8 +147,16 @@ public class IupLaunchActivity extends Activity
 		//doInit(java_asset_manager, this);
 
 		String entry_function_name = getEntryPointFunctionNameFromManifest();
-		Log.i("HelloAndroidIupLaunchActivity", "entry_function_name: " + entry_function_name);
-		IupEntry(this, entry_function_name);
+		Log.i("HelloAndroidIupLaunchActivity", "AndroidManifest entry_function_name: " + entry_function_name);
+
+		String entry_library_name = getEntryPointLibraryNameFromManifest();
+		Log.i("HelloAndroidIupLaunchActivity", "AndroidManifest entry_library_name: " + entry_library_name);
+		if(null == entry_library_name)
+		{
+			entry_library_name = getEntryPointLibraryName();
+		}
+
+		IupEntry(this, entry_function_name, entry_library_name);
 		Log.i("HelloAndroidIupLaunchActivity", "finished calling doInit");
 	}
 
@@ -167,6 +181,26 @@ public class IupLaunchActivity extends Activity
 		return entry_function_name;
 	}
 
+	// String is allowed to be null
+	private String getEntryPointLibraryNameFromManifest()
+	{
+		String entry_library_name = null;
+		try
+		{
+			ApplicationInfo app_info = getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
+			Bundle bundle = app_info.metaData;
+			entry_library_name = bundle.getString("ENTRY_LIBRARY");
+		}
+		catch(PackageManager.NameNotFoundException e)
+		{
+			// Log.e(TAG, "Failed to load meta-data, NameNotFound: " + e.getMessage());
+		}
+		catch (NullPointerException e)
+		{
+			// Log.e(TAG, "Failed to load meta-data, NullPointer: " + e.getMessage());
+		}
+		return entry_library_name;
+	}
 	/** Called when the activity is about to be paused. */
 	@Override
 	protected void onPause()
