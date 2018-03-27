@@ -24,4 +24,9 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 				};
 	}
 
+	@Override
+	public String getEntryPointLibraryName()
+	{
+		return "libMyIupProgramWebBrowser.so";
+	}
 }

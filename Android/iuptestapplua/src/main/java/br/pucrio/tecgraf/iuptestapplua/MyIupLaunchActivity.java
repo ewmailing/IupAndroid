@@ -26,5 +26,10 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 						"lua"
 				};
 	}
-
+	
+	@Override
+	public String getEntryPointLibraryName()
+	{
+		return "libMyIupProgramLua.so";
+	}
 }
