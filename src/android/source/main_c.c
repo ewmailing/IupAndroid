@@ -47,10 +47,10 @@ void IupExitPoint()
 // For Android, this name is hardcoded
 void IupEntryPoint()
 {
+/*
 	{
 		int ret_val;
 		const char* config_value;
-
 		Ihandle* config_file = IupConfig();
 		IupSetStrAttribute(config_file, "APP_NAME", "TestApp");
 		ret_val = IupConfigLoad(config_file);
@@ -72,7 +72,7 @@ void IupEntryPoint()
 		IupDestroy(config_file);
 		config_file = NULL;
 	}
-
+*/
 	{
 		IupSetFunction("EXIT_CB", (Icallback)IupExitPoint);
 	}
