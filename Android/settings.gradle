@@ -8,8 +8,14 @@
 
 include ':iup', ':iupweb', ':iuptestapp', ':iuptestappwebbrowser'
 
+// println  "  project dir:  ${System.getProperty("user.dir")}"
+def project_dir = System.getProperty("user.dir");
+//println "project_dir: ${project_dir}"
+// Android Studio 3.1 (plugin 4.4) broke the default path so new File('local.properties') fails.
+// We need the full path.
+def full_path_local_properties = project_dir + "/local.properties"
 Properties local_properties = new Properties()
-local_properties.load(new File('local.properties').newDataInputStream())
+local_properties.load(new File(full_path_local_properties).newDataInputStream())
 def prebuilt_library_path = local_properties.getProperty('prebuilt_external_libs.dir')
 if(prebuilt_library_path) {
 	include ':iuplua', ':iuptestapplua'
@@ -17,4 +23,5 @@ if(prebuilt_library_path) {
 else {
 	println "ATTENTION: To build IupLua, you must add an entry called prebuilt_external_libs.dir in local.properties. See settings.gradle for more info.\n"
 }
+
 
