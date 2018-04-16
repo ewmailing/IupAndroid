@@ -40,7 +40,8 @@ static JavaVM* s_javaVM = NULL;
 // It uses the Application context because that supposedly will be available for the life of the program.
 static jobject s_applicationContextObject = NULL;
 static pthread_key_t s_attachThreadKey;
-
+// We must cache the IupApplication class. See notes for iupAndroid_GetApplication() to understand why.
+static jclass s_classIupApplication = NULL;
 
 void iupAndroid_ThreadDestroyed(void* user_data)
 {
@@ -64,6 +65,14 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* java_vm, void* reserved)
 	{
 		__android_log_print(ANDROID_LOG_ERROR, "Iup", "Error initializing pthread key");
     }
+
+	// In order to cache our IupApplication class (see notes in iupAndroid_GetApplication)
+	// we need the jni_env. The thread should already be attached (I think) for the OnLoad case,
+	// but just in case, we'll call our iupAndroid_GetEnvThreadSafe().
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass the_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
+	s_classIupApplication = (jobject)((*jni_env)->NewGlobalRef(jni_env, the_class));
+
 
     return JNI_VERSION_1_6;
 }
@@ -142,13 +151,43 @@ void iupAndroid_ReleaseIhandle(JNIEnv* jni_env, Ihandle* ih)
 }
 
 
+/*
+*******
+FAQ: Why didn't FindClass find my class?
+Excerpt: 
+If the class name looks right, you could be running into a class loader issue. FindClass wants to start the class search in the class loader associated with your code. It examines the call stack, which will look something like:
+
+    Foo.myfunc(Native Method)
+    Foo.main(Foo.java:10)
+The topmost method is Foo.myfunc. FindClass finds the ClassLoader object associated with the Foo class and uses that.
+
+This usually does what you want. You can get into trouble if you create a thread yourself (perhaps by calling pthread_create and then attaching it with AttachCurrentThread). Now there are no stack frames from your application. If you call FindClass from this thread, the JavaVM will start in the "system" class loader instead of the one associated with your application, so attempts to find app-specific classes will fail.
+
+There are a few ways to work around this:
+
+Do your FindClass lookups once, in JNI_OnLoad, and cache the class references for later use. Any FindClass calls made as part of executing JNI_OnLoad will use the class loader associated with the function that called System.loadLibrary (this is a special rule, provided to make library initialization more convenient). If your app code is loading the library, FindClass will use the correct class loader.
+Pass an instance of the class into the functions that need it, by declaring your native method to take a Class argument and then passing Foo.class in.
+Cache a reference to the ClassLoader object somewhere handy, and issue loadClass calls directly. This requires some effort.
+*******
+
+Problem: iupAndroid_GetApplication is a very important function that may be used to get a Context from another thread.
+And that thread may have been created via pthread_create, 
+and then using our iupAndroid_GetEnvThreadSafe() function 
+which uses AttachCurrentThread.
+
+So we are vulnerable to the problem described in the FAQ.
+
+Solution: Since this class is special, we will cache it and avoid the FindClass issue that way.
+So we need to cache it in JNI_OnLoad.
+*/
 jobject iupAndroid_GetApplication(JNIEnv* jni_env)
 {
 	jclass java_class;
     jmethodID method_id;
 	jobject ret_object;
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
+//	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
+	java_class = (*jni_env)->NewLocalRef(jni_env, s_classIupApplication);
 	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
 	ret_object = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id);
 
