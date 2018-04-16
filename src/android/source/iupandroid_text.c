@@ -344,7 +344,7 @@ static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 	{
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlyMultiLine", "(JLandroid/widget/EditText;Z)V");
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlyMultiLine", "(JLandroid/widget/EditText;)Z");
 
 			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
@@ -357,7 +357,7 @@ static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 		}
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlySingleLine", "(JLandroid/widget/EditText;Z)V");
+			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlySingleLine", "(JLandroid/widget/EditText;)Z");
 
 			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
