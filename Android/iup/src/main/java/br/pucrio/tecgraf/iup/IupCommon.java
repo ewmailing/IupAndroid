@@ -193,5 +193,33 @@ View child_view = null;
 		return HandleIupCallback(ihandle_ptr, key_string);
 	}
 
+
+
+	public static void setActive(Object the_widget, boolean is_active)
+	{
+		if(the_widget instanceof android.view.View)
+		{
+			View the_view = (View)the_widget;
+			the_view.setEnabled(is_active);
+		}
+		else
+		{
+			Log.e("Java IupCommon setActive", "the_widget is unsupported/unimplemented type");
+		}
+	}
+	public static boolean isActive(Object the_widget)
+	{
+		if(the_widget instanceof android.view.View)
+		{
+			View the_view = (View)the_widget;
+			return the_view.isEnabled();
+		}
+		else
+		{
+			Log.e("Java IupCommon isActive", "the_widget is unsupported/unimplemented type");
+			return true;
+		}
+	}
+
 }
 

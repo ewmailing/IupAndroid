@@ -313,11 +313,37 @@ int iupdrvIsVisible(Ihandle* ih)
 
 int iupdrvIsActive(Ihandle *ih)
 {
-  return 1;
+	jclass java_class;
+	jmethodID method_id;
+
+	jobject widget_object = ih->handle;
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+
+	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "isActive", "(Ljava/lang/Object)Z");
+	jboolean ret_val = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id, widget_object);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	return ret_val;
 }
 
 void iupdrvSetActive(Ihandle* ih, int enable)
 {
+	jclass java_class;
+	jmethodID method_id;
+
+	jobject widget_object = ih->handle;
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+
+	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setActive", "(Ljava/lang/Object;Z)V");
+	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, widget_object, (jboolean)enable);
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
 }
 
 char* iupdrvBaseGetXAttrib(Ihandle *ih)
