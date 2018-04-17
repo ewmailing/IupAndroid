@@ -29,6 +29,7 @@
 #include <android/log.h>
 #include <jni.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 
 
@@ -77,9 +78,40 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* java_vm, void* reserved)
     return JNI_VERSION_1_6;
 }
 
-JNIEnv* iupAndroid_GetEnvThreadSafe()
+void iupAndroid_DetachThreadIfAttached()
 {
-	JNIEnv* jni_env;
+	JNIEnv* jni_env = NULL;
+	int get_env_stat = (*s_javaVM)->GetEnv(s_javaVM, (void**)&jni_env, JNI_VERSION_1_6);
+	if(get_env_stat == JNI_EDETACHED)
+	{
+		// Not attached, don't need to do anything.
+	}
+	else if(JNI_OK == get_env_stat)
+	{
+		jint detach_status = (*s_javaVM)->DetachCurrentThread(s_javaVM);
+		if(0 != detach_status)
+		{
+			__android_log_print(ANDROID_LOG_ERROR, "Iup", "DetachCurrentThread failed");
+		}
+	}
+	else if (get_env_stat == JNI_EVERSION)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "Iup", "GetEnv version not supported");
+	}
+}
+
+void iupAndroid_DetachThreadUnchecked()
+{
+	jint detach_status = (*s_javaVM)->DetachCurrentThread(s_javaVM);
+	if(0 != detach_status)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "Iup", "DetachCurrentThread failed");
+	}
+}
+
+JNIEnv* iupAndroid_GetEnvThreadSafeWithAttachStatus(_Bool* out_was_detached)
+{
+	JNIEnv* jni_env = NULL;
 	
 	/* ALmixer Notes: */
 	/* Careful: If ALmixer is compiled with threads, make sure any calls back into Java are thread safe. */
@@ -94,11 +126,14 @@ JNIEnv* iupAndroid_GetEnvThreadSafe()
 	 * Otherwise, we need to avoid calling it and use the current "env".
 	 */
 
+	_Bool was_detached = false;
+
 	/* There is a little JNI dance you can do to deal with this situation which is shown here.
 	*/
 	int get_env_stat = (*s_javaVM)->GetEnv(s_javaVM, (void**)&jni_env, JNI_VERSION_1_6);
 	if(get_env_stat == JNI_EDETACHED)
 	{
+		was_detached = true;
 		jint attach_status = (*s_javaVM)->AttachCurrentThread(s_javaVM, &jni_env, NULL);
 		if(0 != attach_status)
 		{
@@ -121,14 +156,27 @@ JNIEnv* iupAndroid_GetEnvThreadSafe()
 	else if(JNI_OK == get_env_stat)
 	{
 		// don't need to do anything
+		was_detached = false;
 	}
 	else if (get_env_stat == JNI_EVERSION)
 	{
-		__android_log_print(ANDROID_LOG_ERROR, "Iup", "GetEnv version not supported"); 
+		__android_log_print(ANDROID_LOG_ERROR, "Iup", "GetEnv version not supported");
+		was_detached = false;
 	}
 
+	if(NULL != out_was_detached)
+	{
+		*out_was_detached = was_detached;
+	}
 
 	return jni_env;
+}
+
+// External callers may want to call iupAndroid_GetEnvThreadSafeWithAttachStatus
+// so you can decide if you want to detach immediately after you are done.
+JNIEnv* iupAndroid_GetEnvThreadSafe()
+{
+	return iupAndroid_GetEnvThreadSafeWithAttachStatus(NULL);
 }
 
 void iupAndroid_RetainIhandle(JNIEnv* jni_env, jobject native_widget, Ihandle* ih)
