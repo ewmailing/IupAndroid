@@ -61,6 +61,61 @@ JNIEXPORT jstring JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribGe
 	return NULL;
 }
 
+JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribSet(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string, jstring j_value_string)
+{
+	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
+	if(ih)
+	{
+		if(NULL != j_key_string)
+		{
+			const char* key_string = (*jni_env)->GetStringUTFChars(jni_env, j_key_string, NULL);
+			const char* value_string = (*jni_env)->GetStringUTFChars(jni_env, j_value_string, NULL);
+		
+			iupAttribSet(ih, key_string, value_string);
+			
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_value_string, value_string);
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_key_string, key_string);
+		}	
+	}
+}
+
+
+
+JNIEXPORT jint JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribGetInt(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string)
+{
+	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
+	if(ih)
+	{
+		if(NULL != j_key_string)
+		{
+			const char* key_string = (*jni_env)->GetStringUTFChars(jni_env, j_key_string, NULL);
+			
+			int value_int = iupAttribGetInt(ih, key_string);
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_key_string, key_string);
+
+			return (jint)value_int;
+		}	
+	}
+	return 0;
+}
+
+JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_nativeIupAttribSetInt(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string, jint j_value_int)
+{
+	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
+	if(ih)
+	{
+		if(NULL != j_key_string)
+		{
+			const char* key_string = (*jni_env)->GetStringUTFChars(jni_env, j_key_string, NULL);
+		
+			iupAttribSetInt(ih, key_string, (int)j_value_int);
+			
+			(*jni_env)->ReleaseStringUTFChars(jni_env, j_key_string, key_string);
+		}	
+	}
+}
+
+
 
 /* IUP returns -1 through -4 for callbacks. I also return -15 if no callback is registered. I picked -15 because I wanted to leave >=0 for users and wanted to leave IUP space to expand. */
 JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jstring j_key_string)

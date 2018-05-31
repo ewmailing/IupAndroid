@@ -19,109 +19,82 @@
 #include "iup_assert.h"
 #include "iup_timer.h"
 
-
-#if 0
-- (void) onTimerCallback:(NSTimer*)theTimer
-{
-  Icallback callback_function;
-  Ihandle* ih = (Ihandle*)[[[self theTimer] userInfo] pointerValue];
-  callback_function = IupGetCallback(ih, "ACTION_CB");
-	
-  if(callback_function)
-  {
-	  CFTimeInterval start_time = [self startTime];
-	  double current_time = CACurrentMediaTime();
-	  NSUInteger elapsed_time = (NSUInteger)(((current_time - start_time) * 1000.0) + 0.5);
-	  iupAttribSetInt(ih, "ELAPSEDTIME", (int)elapsed_time);
-	  
-    if(callback_function(ih) == IUP_CLOSE)
-	{
-		IupExitLoop();
-	}
-  }
-}
-
-#endif
+#include "iupandroid_drv.h"
+#include <jni.h>
+#include <android/log.h>
 
 
 void iupdrvTimerRun(Ihandle* ih)
 {
-#if 0
-  unsigned int time_ms;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jclass java_class;
+	jmethodID method_id;
+	jobject java_widget;
 
-  if (ih->handle != nil) /* timer already started */
-  {
-	  return;
-  }
-  time_ms = iupAttribGetInt(ih, "TIME");
-  if(time_ms > 0)
-  {
-	  IupCocoaTimerController* timer_controller = [[IupCocoaTimerController alloc] init];
-	  // CACurrentMediaTime is tied to a real time clock. It uses mach_absolute_time() under the hood.
-	  // GNUStep: Neither of these is likely directly portable (CACurrentMediaTime more likely), so we may need an #ifdef here.
-	  // [[NSDate date] timeIntervalSince1970]; isn't so great because it is affected by network clock changes and so forth.
-	  double start_time = CACurrentMediaTime();
-
-	  NSTimer* the_timer = [NSTimer scheduledTimerWithTimeInterval:(time_ms/1000.0)
-		target:timer_controller
-        selector:@selector(onTimerCallback:)
-        userInfo:(id)[NSValue valueWithPointer:ih]
-		repeats:YES
-	];
-	  
+	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
 
 
-	  // Cocoa seems to block timers or events sometimes. This can be seen
-	  // when I'm animating (via a timer) and you open an popup box or move a slider.
-	  // Apparently, sheets and dialogs can also block (try printing).
-	  // To work around this, Cocoa provides different run-loop modes. I need to
-	  // specify the modes to avoid the blockage.
-	  // NSDefaultRunLoopMode seems to be the default. I don't think I need to explicitly
-	  // set this one, but just in case, I will set it anyway.
-	  [[NSRunLoop currentRunLoop] addTimer:the_timer forMode:NSRunLoopCommonModes];
-
-
-	[timer_controller setTheTimer:the_timer];
-	  [timer_controller setStartTime:start_time];
-
-	  ih->handle = (__unsafe_unretained void*)timer_controller;
-  }
-	
-#endif
-}
-
-static void cocoaTimerDestroy(Ihandle* ih)
-{
-#if 0
-	if(nil != ih->handle)
+	if(NULL == ih->handle) /* timer not already created */
 	{
-		IupCocoaTimerController* timer_controller = (IupCocoaTimerController*)ih->handle;
-		NSTimer* the_timer = [timer_controller theTimer];
-		
-		[the_timer invalidate];
-		
-		// This will also release the timer instance via the dealloc
-		[timer_controller release];
-		
-		ih->handle = nil;
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createTimer", "(J)Lbr/pucrio/tecgraf/iup/IupTimer;");
+		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
+		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
+		(*jni_env)->DeleteLocalRef(jni_env, java_widget);
 	}
-#endif
+	else
+	{
+		java_widget = ih->handle;
+	}
+
+	unsigned int time_ms = iupAttribGetInt(ih, "TIME");
+	if(time_ms > 0)
+	{
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "startTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;J)V");
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget, time_ms);
+
+	}
+
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 }
 
 void iupdrvTimerStop(Ihandle* ih)
 {
+	if(NULL != ih->handle)
+	{
+		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+		jclass java_class;
+		jmethodID method_id;
+		jobject java_widget = (jobject)ih->handle;
 
-//	cocoaTimerDestroy(ih);
+		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
+		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "stopTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;)V");
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget);
+		
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	}
+}
 
+static void androidTimerDestroy(Ihandle* ih)
+{
+	iupdrvTimerStop(ih);
+
+	if(NULL != ih->handle)
+	{
+		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+		jobject java_widget = (jobject)ih->handle;
+		(*jni_env)->DeleteGlobalRef(jni_env, java_widget);
+
+		ih->handle = NULL;
+	}
 }
 
 void iupdrvTimerInitClass(Iclass* ic)
 {
 	(void)ic;
 	// This must be UnMap and not Destroy because we're using the ih->handle and UnMap will clear the pointer to NULL before we reach Destroy.
-	ic->UnMap = cocoaTimerDestroy;
+	ic->UnMap = androidTimerDestroy;
 
-	
+
 }
 
 

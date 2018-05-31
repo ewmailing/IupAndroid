@@ -185,6 +185,23 @@ View child_view = null;
 	{
 		return nativeIupAttribGet(ihandle_ptr, key_string);
     }
+    public native static void nativeIupAttribSet(long ihandle_ptr, String key_string, String value_string);
+    public static void iupAttribSet(long ihandle_ptr, String key_string, String value_string)
+	{
+		nativeIupAttribSet(ihandle_ptr, key_string, value_string);
+    }
+
+    public native static int nativeIupAttribGetInt(long ihandle_ptr, String key_string);
+    public static int iupAttribGetInt(long ihandle_ptr, String key_string)
+	{
+		return nativeIupAttribGetInt(ihandle_ptr, key_string);
+    }
+    public native static void nativeIupAttribSetInt(long ihandle_ptr, String key_string, int value_int);
+    public static void iupAttribSetInt(long ihandle_ptr, String key_string, int value_int)
+	{
+		nativeIupAttribSetInt(ihandle_ptr, key_string, value_int);
+    }
+
 
 	/* IUP returns -1 through -4 for callbacks. I also return -15 if no callback is registered. */
 	public native static int HandleIupCallback(long ihandle_ptr, String key_string);
