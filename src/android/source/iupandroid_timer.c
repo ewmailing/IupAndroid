@@ -39,21 +39,21 @@ void iupdrvTimerRun(Ihandle* ih)
 		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createTimer", "(J)Lbr/pucrio/tecgraf/iup/IupTimer;");
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
-		(*jni_env)->DeleteLocalRef(jni_env, java_widget);
 	}
 	else
 	{
-		java_widget = ih->handle;
+		java_widget = (*jni_env)->NewLocalRef(jni_env, ih->handle);
 	}
 
 	unsigned int time_ms = iupAttribGetInt(ih, "TIME");
 	if(time_ms > 0)
 	{
 		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "startTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;J)V");
-		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget, time_ms);
+		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget, (jlong)time_ms);
 
 	}
 
+	(*jni_env)->DeleteLocalRef(jni_env, java_widget);
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 }
 
