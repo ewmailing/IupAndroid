@@ -22,21 +22,28 @@
 #include "iupandroid_drv.h"
 #include <jni.h>
 #include <android/log.h>
+#include "iupandroid_jni_macros.h"
+
+iupJNI_DECLARE_CLASS(IupTimerHelper);
 
 
 void iupdrvTimerRun(Ihandle* ih)
 {
+	iupJNI_DECLARE_METHOD_ID(IupTimer_createTimer);
+	iupJNI_DECLARE_METHOD_ID(IupTimer_startTimer);
+
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
 	jclass java_class;
 	jmethodID method_id;
 	jobject java_widget;
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
-
+//	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
+	java_class = iupJNI_FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper", IupTimerHelper);
 
 	if(NULL == ih->handle) /* timer not already created */
 	{
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createTimer", "(J)Lbr/pucrio/tecgraf/iup/IupTimer;");
+//		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createTimer", "(J)Lbr/pucrio/tecgraf/iup/IupTimer;");
+		method_id = iupJNI_GetStaticMethodID(jni_env, java_class, "createTimer", "(J)Lbr/pucrio/tecgraf/iup/IupTimer;", IupTimer_createTimer);
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
 	}
@@ -48,7 +55,8 @@ void iupdrvTimerRun(Ihandle* ih)
 	unsigned int time_ms = iupAttribGetInt(ih, "TIME");
 	if(time_ms > 0)
 	{
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "startTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;J)V");
+//		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "startTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;J)V");
+		method_id = iupJNI_GetStaticMethodID(jni_env, java_class, "startTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;J)V", IupTimer_startTimer);
 		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget, (jlong)time_ms);
 
 	}
@@ -59,6 +67,8 @@ void iupdrvTimerRun(Ihandle* ih)
 
 void iupdrvTimerStop(Ihandle* ih)
 {
+	iupJNI_DECLARE_METHOD_ID(IupTimer_stopTimer);
+
 	if(NULL != ih->handle)
 	{
 		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
@@ -66,8 +76,10 @@ void iupdrvTimerStop(Ihandle* ih)
 		jmethodID method_id;
 		jobject java_widget = (jobject)ih->handle;
 
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "stopTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;)V");
+//		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");
+		java_class = iupJNI_FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper", IupTimerHelper);
+//		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "stopTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;)V");
+		method_id = iupJNI_GetStaticMethodID(jni_env, java_class, "stopTimer", "(JLbr/pucrio/tecgraf/iup/IupTimer;)V", IupTimer_stopTimer);
 		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih, java_widget);
 		
 		(*jni_env)->DeleteLocalRef(jni_env, java_class);
