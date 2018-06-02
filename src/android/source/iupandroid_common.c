@@ -233,32 +233,50 @@ So we need to cache it in JNI_OnLoad.
 */
 jobject iupAndroid_GetApplication(JNIEnv* jni_env)
 {
-	IUPJNI_DECLARE_METHOD_ID_STATIC(IupApplication_getIupApplication);
-	jclass java_class;
-    jmethodID method_id;
-	jobject ret_object;
+	static jobject s_applicationObject = NULL;
+	jobject ret_object = NULL;
 
-//	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
-	java_class = (*jni_env)->NewLocalRef(jni_env, s_classIupApplication);
-	method_id = IUPJNI_GetStaticMethodID(IupApplication_getIupApplication, jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
-	ret_object = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id);
 
-	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+	if(NULL == s_applicationObject)
+	{
+		IUPJNI_DECLARE_METHOD_ID_STATIC(IupApplication_getIupApplication);
+		jclass java_class;
+		jmethodID method_id;
 
+		//	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
+		java_class = (*jni_env)->NewLocalRef(jni_env, s_classIupApplication);
+		method_id = IUPJNI_GetStaticMethodID(IupApplication_getIupApplication, jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
+		ret_object = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id);
+
+		s_applicationObject = (*jni_env)->NewGlobalRef(jni_env, ret_object);
+		(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	}
+	else
+	{
+		ret_object = (*jni_env)->NewLocalRef(jni_env, s_applicationObject);
+
+	}
+
+	// Note: This is a Local Ref. Caller is expected to call DeleteLocalRef when done.
 	return ret_object;
 
 }
 
+// Note: Because the "Current" activity can change, we don't want to cache it.
 jobject iupAndroid_GetCurrentActivity(JNIEnv* jni_env)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupApplication_getCurrentActivity);
 	jclass java_class;
     jmethodID method_id;
-	jobject ret_object;
+	jobject ret_object = NULL;
 
 	jobject application_object = iupAndroid_GetApplication(jni_env);
 
-    java_class = (*jni_env)->GetObjectClass(jni_env, application_object);
-	method_id = (*jni_env)->GetMethodID(jni_env, java_class, "getCurrentActivity", "()Landroid/app/Activity;");
+	// We actually know the class has to be IupApplication, which is already cached in s_classIupApplication
+//    java_class = (*jni_env)->GetObjectClass(jni_env, application_object);
+	java_class = (*jni_env)->NewLocalRef(jni_env, s_classIupApplication);
+	method_id = IUPJNI_GetMethodID(IupApplication_getCurrentActivity, jni_env, java_class, "getCurrentActivity", "()Landroid/app/Activity;");
 	ret_object = (*jni_env)->CallObjectMethod(jni_env, application_object, method_id);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
