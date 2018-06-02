@@ -110,8 +110,8 @@ To use:
 
 
 
-//#define IUP_ENABLE_CACHE_JAVA_CLASS 1
-//#define IUP_ENABLE_CACHE_JAVA_METHOD_ID 1
+#define IUP_ENABLE_CACHE_JAVA_CLASS 1
+#define IUP_ENABLE_CACHE_JAVA_METHOD_ID 1
 
 #if defined(IUP_ENABLE_CACHE_JAVA_CLASS) && (IUP_ENABLE_CACHE_JAVA_CLASS == 1)
 
@@ -140,6 +140,22 @@ To use:
 		tmp_jclass_ ## varname; \
 	})
 
+	#define IUPJNI_GetObjectClass(varname, jni_env, java_object) \
+	({ \
+		jobject tmp_jclass_ ## varname = NULL; \
+		if(NULL == g_javaClass ## varname) \
+		{ \
+			tmp_jclass_ ## varname = (*jni_env)->GetObjectClass(jni_env, java_object); \
+			g_javaClass ## varname = (jobject)((*jni_env)->NewGlobalRef(jni_env, tmp_jclass_ ## varname)); \
+		} \
+		else \
+		{ \
+			tmp_jclass_ ## varname = (jobject)((*jni_env)->NewLocalRef(jni_env, g_javaClass ## varname)); \
+		} \
+		tmp_jclass_ ## varname; \
+	})
+
+
 #else
 	#define IUPJNI_DECLARE_CLASS_GLOBAL(varname)
 
@@ -149,6 +165,10 @@ To use:
 
 	#define IUPJNI_FindClass(varname, jni_env, classstr) \
 		(*jni_env)->FindClass(jni_env, classstr);
+
+	#define IUPJNI_GetObjectClass(varname, jni_env, java_object) \
+		(*jni_env)->GetObjectClass(jni_env, java_object);
+
 #endif
 
 

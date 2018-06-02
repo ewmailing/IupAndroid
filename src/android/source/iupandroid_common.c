@@ -31,7 +31,9 @@
 #include <pthread.h>
 #include <stdbool.h>
 
+#include "iupandroid_jnimacros.h"
 
+IUPJNI_DECLARE_CLASS_EXTERN(IupCommon);
 
 static int s_isInitialized = 0;
 
@@ -73,6 +75,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* java_vm, void* reserved)
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
 	jclass the_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
 	s_classIupApplication = (jobject)((*jni_env)->NewGlobalRef(jni_env, the_class));
+	(*jni_env)->DeleteLocalRef(jni_env, the_class);
 
 
     return JNI_VERSION_1_6;
@@ -230,13 +233,14 @@ So we need to cache it in JNI_OnLoad.
 */
 jobject iupAndroid_GetApplication(JNIEnv* jni_env)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupApplication_getIupApplication);
 	jclass java_class;
     jmethodID method_id;
 	jobject ret_object;
 
 //	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupApplication");
 	java_class = (*jni_env)->NewLocalRef(jni_env, s_classIupApplication);
-	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
+	method_id = IUPJNI_GetStaticMethodID(IupApplication_getIupApplication, jni_env, java_class, "getIupApplication", "()Lbr/pucrio/tecgraf/iup/IupApplication;");
 	ret_object = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
@@ -265,6 +269,7 @@ jobject iupAndroid_GetCurrentActivity(JNIEnv* jni_env)
 
 void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_addWidgetToParent);
 
 
 	jclass java_class;
@@ -276,8 +281,8 @@ void iupAndroid_AddWidgetToParent(JNIEnv* jni_env, Ihandle* ih)
 		__android_log_print(ANDROID_LOG_INFO, "iupAndroidAddWidgetToParent", "parent_native_handle:%p, ih->handle: %p", parent_native_handle, ih->handle);
 
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "addWidgetToParent", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+	java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = IUPJNI_GetStaticMethodID(IupCommon_addWidgetToParent, jni_env, java_class, "addWidgetToParent", "(Ljava/lang/Object;Ljava/lang/Object;)V");
 	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, parent_native_handle, child_handle);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
@@ -301,7 +306,7 @@ void iupdrvReparent(Ihandle* ih)
 
 void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 {
-
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_setWidgetPosition);
 
 
 	jobject parent_native_handle = iupChildTreeGetNativeParentHandle(ih);
@@ -311,8 +316,8 @@ void iupdrvBaseLayoutUpdateMethod(Ihandle *ih)
 	__android_log_print(ANDROID_LOG_INFO, "iupdrvBaseLayoutUpdateMethod", "x:%d, y:%d, w:%d, h:%d", ih->x, ih->y, ih->currentwidth, ih->currentheight);
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-	jmethodID method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setWidgetPosition", "(Ljava/lang/Object;IIII)V");
+	jclass java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	jmethodID method_id = IUPJNI_GetStaticMethodID(IupCommon_setWidgetPosition, jni_env, java_class, "setWidgetPosition", "(Ljava/lang/Object;IIII)V");
 	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, child_handle, ih->x, ih->y, ih->currentwidth, ih->currentheight);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
@@ -361,6 +366,7 @@ int iupdrvIsVisible(Ihandle* ih)
 
 int iupdrvIsActive(Ihandle *ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_isActive);
 	jclass java_class;
 	jmethodID method_id;
 
@@ -368,8 +374,8 @@ int iupdrvIsActive(Ihandle *ih)
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "isActive", "(Ljava/lang/Object)Z");
+	java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = IUPJNI_GetStaticMethodID(IupCommon_isActive, jni_env, java_class, "isActive", "(Ljava/lang/Object)Z");
 	jboolean ret_val = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id, widget_object);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
@@ -379,6 +385,7 @@ int iupdrvIsActive(Ihandle *ih)
 
 void iupdrvSetActive(Ihandle* ih, int enable)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_setActive);
 	jclass java_class;
 	jmethodID method_id;
 
@@ -386,8 +393,8 @@ void iupdrvSetActive(Ihandle* ih, int enable)
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setActive", "(Ljava/lang/Object;Z)V");
+	java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+	method_id = IUPJNI_GetStaticMethodID(IupCommon_setActive, jni_env, java_class, "setActive", "(Ljava/lang/Object;Z)V");
 	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, widget_object, (jboolean)enable);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);
