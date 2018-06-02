@@ -37,6 +37,35 @@ int OnButtonCallback()
 
 	return IUP_DEFAULT;
 }
+Ihandle *timer1, *timer2;
+
+int timer_cb(Ihandle *n)
+{
+	if(n == timer1)
+	{
+		static int counter = 0;
+		IupLog("DEBUG", "timer 1 called\n");
+		if(counter > 5)
+		{
+			IupLog("DEBUG", "killing timer 1\n");
+			IupDestroy(timer1);
+			timer1 = NULL;
+		}
+		counter++;
+
+	}
+
+	if(n == timer2)
+	{
+		IupLog("DEBUG", "timer 2 called\n");
+		IupDestroy(timer2);
+		timer2 = NULL;
+		return IUP_CLOSE;
+
+	}
+
+	return IUP_DEFAULT;
+}
 
 
 void IupExitPoint()
@@ -113,6 +142,18 @@ void IupEntryPoint()
 	//	IupMap(dialog);
 	IupSetAttribute(dialog, "TITLE", "Iup Activity Title");
 //	IupSetAttribute(dialog, "RASTERSIZE", "1024x1920");
+
+	timer1 = IupTimer();
+	timer2 = IupTimer();
+
+	IupSetAttribute(timer1, "TIME", "4000");
+	IupSetAttribute(timer1, "RUN", "YES");
+	IupSetCallback(timer1, "ACTION_CB", (Icallback)timer_cb);
+
+	IupSetAttribute(timer2, "TIME", "10000");
+	IupSetAttribute(timer2, "RUN", "YES");
+	IupSetCallback(timer2, "ACTION_CB", (Icallback)timer_cb);
+
 
 
 	IupShow(dialog);
