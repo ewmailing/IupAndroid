@@ -9,6 +9,12 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
+// Can we use this?
+// Android 8.0 @FastNative & @CriticalNative
+// https://source.android.com/devices/tech/dalvik/improvements#faster-native-methods
+// import dalvik.annotation.optimization.FastNative;
+
+
 public final class IupCommon
 {
 
@@ -180,23 +186,27 @@ View child_view = null;
 
 	}
 
+//	@FastNative
     public native static String nativeIupAttribGet(long ihandle_ptr, String key_string);
     public static String iupAttribGet(long ihandle_ptr, String key_string)
 	{
 		return nativeIupAttribGet(ihandle_ptr, key_string);
     }
-    public native static void nativeIupAttribSet(long ihandle_ptr, String key_string, String value_string);
+//	@FastNative
+	public native static void nativeIupAttribSet(long ihandle_ptr, String key_string, String value_string);
     public static void iupAttribSet(long ihandle_ptr, String key_string, String value_string)
 	{
 		nativeIupAttribSet(ihandle_ptr, key_string, value_string);
     }
 
-    public native static int nativeIupAttribGetInt(long ihandle_ptr, String key_string);
+//	@FastNative
+	public native static int nativeIupAttribGetInt(long ihandle_ptr, String key_string);
     public static int iupAttribGetInt(long ihandle_ptr, String key_string)
 	{
 		return nativeIupAttribGetInt(ihandle_ptr, key_string);
     }
-    public native static void nativeIupAttribSetInt(long ihandle_ptr, String key_string, int value_int);
+//	@FastNative
+	public native static void nativeIupAttribSetInt(long ihandle_ptr, String key_string, int value_int);
     public static void iupAttribSetInt(long ihandle_ptr, String key_string, int value_int)
 	{
 		nativeIupAttribSetInt(ihandle_ptr, key_string, value_int);
