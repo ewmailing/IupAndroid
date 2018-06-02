@@ -28,6 +28,11 @@
 #include "iupandroid_drv.h"
 #include <jni.h>
 #include <android/log.h>
+#include "iupandroid_jnimacros.h"
+
+
+IUPJNI_DECLARE_CLASS_EXTERN(IupCommon);
+IUPJNI_DECLARE_CLASS_STATIC(IupButtonHelper);
 
 
 #if 0
@@ -99,7 +104,9 @@ void iupdrvButtonAddBorders(Ihandle* ih, int *x, int *y)
 
 static int androidButtonMapMethod(Ihandle* ih)
 {
-    JNIEnv* jni_env;
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupButtonHelper_createButton);
+
+	JNIEnv* jni_env;
 	jclass java_class;
     jmethodID method_id;
 	jobject java_widget;
@@ -124,8 +131,8 @@ static int androidButtonMapMethod(Ihandle* ih)
 	else
 	{
 
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupButtonHelper");
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createButton", "(J)Landroid/widget/Button;");
+		java_class = IUPJNI_FindClass(IupButtonHelper, jni_env, "br/pucrio/tecgraf/iup/IupButtonHelper");
+		method_id = IUPJNI_GetStaticMethodID(IupButtonHelper_createButton, jni_env, java_class, "createButton", "(J)Landroid/widget/Button;");
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 
 		ih->handle = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_widget));
@@ -161,6 +168,7 @@ static int androidButtonMapMethod(Ihandle* ih)
 
 static void androidButtonUnMapMethod(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_removeWidgetFromParent);
 
 		__android_log_print(ANDROID_LOG_INFO, "androidButtonUnMapMethod", "starting");
 
@@ -172,8 +180,8 @@ static void androidButtonUnMapMethod(Ihandle* ih)
 		jmethodID method_id;
     	jni_env = iupAndroid_GetEnvThreadSafe();
 
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-    	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+		java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+    	method_id = IUPJNI_GetStaticMethodID(IupCommon_removeWidgetFromParent, jni_env, java_class, "removeWidgetFromParent", "(J)V");
     	(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
     	(*jni_env)->DeleteLocalRef(jni_env, java_class);
 
