@@ -29,6 +29,10 @@
 #include "iupandroid_drv.h"
 #include <android/log.h>
 #include <jni.h>
+#include "iupandroid_jnimacros.h"
+#include "iupandroid_jnicacheglobals.h"
+
+IUPJNI_DECLARE_CLASS_STATIC(IupLabelHelper);
 
 typedef enum
 {
@@ -83,8 +87,9 @@ void iupdrvLabelAddBorders(Ihandle* ih, int *x, int *y)
 
 static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_setText);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
 	jmethodID method_id = NULL;
 	char* attribute_value = NULL;
 	jobject java_widget = NULL;
@@ -100,7 +105,7 @@ static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 	{
 		case IUPANDROIDLABELSUBTYPE_TEXT:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setText", "(JLandroid/widget/TextView;Ljava/lang/String;)V");
+			method_id = IUPJNI_GetStaticMethodID(IupLabelHelper_setText, jni_env, java_class, "setText", "(JLandroid/widget/TextView;Ljava/lang/String;)V");
 
 			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
 
@@ -131,10 +136,11 @@ static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 
 static char* androidLabelGetTitleAttrib(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_getText);
 	char* value = NULL;
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
 	jmethodID method_id = NULL;
 
 
@@ -143,7 +149,7 @@ static char* androidLabelGetTitleAttrib(Ihandle* ih)
 	{
 		case IUPANDROIDLABELSUBTYPE_TEXT:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getText",
+			method_id = IUPJNI_GetStaticMethodID(IupLabelHelper_getText, jni_env, java_class, "getText",
 					"(JLandroid/widget/TextView;)Ljava/lang/String;");
 			jstring j_string = (jstring)(*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t)ih,
@@ -182,8 +188,9 @@ static char* androidLabelGetTitleAttrib(Ihandle* ih)
 
 static int androidLabelMapMethod(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_createLabelText);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
+	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
 	jmethodID method_id = NULL;
 //	char* attribute_value = NULL;
 	jobject java_widget = NULL;
@@ -244,7 +251,7 @@ static int androidLabelMapMethod(Ihandle* ih)
 
 
 
-					method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createLabelText",
+					method_id = IUPJNI_GetStaticMethodID(IupLabelHelper_createLabelText, jni_env, java_class, "createLabelText",
 															  "(J)Landroid/widget/TextView;");
 					java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 																	 (jlong) (intptr_t) ih);
@@ -313,8 +320,8 @@ static void androidLabelUnMapMethod(Ihandle* ih)
 		jmethodID method_id;
 		jni_env = iupAndroid_GetEnvThreadSafe();
 
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+		java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+		method_id = IUPJNI_GetStaticMethodID(IupCommon_removeWidgetFromParent, jni_env, java_class, "removeWidgetFromParent", "(J)V");
 		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 		(*jni_env)->DeleteLocalRef(jni_env, java_class);
 

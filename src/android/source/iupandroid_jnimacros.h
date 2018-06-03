@@ -54,10 +54,11 @@ To use:
 			IUPJNI_DECLARE_CLASS_STATIC(IupTimerHelper)	
 	
 		- For classes that will be used in multiple files, use IUPJNI_DECLARE_CLASS_EXTERN and IUPJNI_DECLARE_CLASS_GLOBAL.
-			- In iupandroid_jni_cacheglobals.c, add an entry for your new class:
+			- In iupandroid_jnicacheglobals.c, add an entry for your new class:
 				IUPJNI_DECLARE_CLASS_GLOBAL(IupTimerHelper)	
-			- Then at the top of every file (global area), add an extern entry so the variable is visible.
+			- Then add to the iupandroid_jnicacheglobals.h:
 				IUPJNI_DECLARE_CLASS_EXTERN(IupTimerHelper)	
+			- Make sure any file that any file that uses the global has #include "iupandroid_jnicacheglobals.h"
 
 	- Then replace your FindClass line, e.g. 
 		jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTimerHelper");

@@ -32,8 +32,8 @@
 
 #include <android/log.h>
 #include "iupandroid_jnimacros.h"
+#include "iupandroid_jnicacheglobals.h"
 
-IUPJNI_DECLARE_CLASS_EXTERN(IupCommon);
 IUPJNI_DECLARE_CLASS_STATIC(IupTextHelper);
 
 

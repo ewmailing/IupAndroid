@@ -32,8 +32,8 @@
 #include <stdbool.h>
 
 #include "iupandroid_jnimacros.h"
+#include "iupandroid_jnicacheglobals.h"
 
-IUPJNI_DECLARE_CLASS_EXTERN(IupCommon);
 
 static int s_isInitialized = 0;
 
