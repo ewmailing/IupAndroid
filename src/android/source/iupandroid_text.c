@@ -31,7 +31,10 @@
 #include "iupandroid_drv.h"
 
 #include <android/log.h>
+#include "iupandroid_jnimacros.h"
 
+IUPJNI_DECLARE_CLASS_EXTERN(IupCommon);
+IUPJNI_DECLARE_CLASS_STATIC(IupTextHelper);
 
 
 typedef enum
@@ -120,8 +123,9 @@ void iupdrvTextAddFormatTag(Ihandle* ih, Ihandle* formattag, int bulk)
 
 static int androidTextSetValueAttrib(Ihandle* ih, const char* value)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_setText);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 	char* attribute_value = NULL;
 	jobject java_widget = NULL;
@@ -138,7 +142,7 @@ static int androidTextSetValueAttrib(Ihandle* ih, const char* value)
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setText", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_setText, jni_env, java_class, "setText", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
 
 			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
 
@@ -172,10 +176,11 @@ static int androidTextSetValueAttrib(Ihandle* ih, const char* value)
 
 static char* androidTextGetValueAttrib(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_getText);
 	char* value = NULL;
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 
 
@@ -185,7 +190,7 @@ static char* androidTextGetValueAttrib(Ihandle* ih)
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getText",
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_getText, jni_env, java_class, "getText",
 													  "(JLandroid/widget/EditText;)Ljava/lang/String;");
 			jstring j_string = (jstring)(*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t)ih,
@@ -228,8 +233,9 @@ static char* androidTextGetValueAttrib(Ihandle* ih)
 
 static int androidTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_setCueBanner);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 	char* attribute_value = NULL;
 	jobject java_widget = NULL;
@@ -245,7 +251,7 @@ static int androidTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setCueBanner", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_setCueBanner, jni_env, java_class, "setCueBanner", "(JLandroid/widget/EditText;Ljava/lang/String;)V");
 
 			jstring j_string = (*jni_env)->NewStringUTF(jni_env, value);
 
@@ -279,8 +285,10 @@ static int androidTextSetCueBannerAttrib(Ihandle *ih, const char *value)
 
 static int androidTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_setReadOnlyMultiLine);
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_setReadOnlySingleLine);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 
 	bool is_read_only = (bool)iupStrBoolean(value);
@@ -290,7 +298,7 @@ static int androidTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 	{
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setReadOnlyMultiLine", "(JLandroid/widget/EditText;Z)V");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_setReadOnlyMultiLine, jni_env, java_class, "setReadOnlyMultiLine", "(JLandroid/widget/EditText;Z)V");
 
 			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
@@ -303,7 +311,7 @@ static int androidTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 		}
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "setReadOnlySingleLine", "(JLandroid/widget/EditText;Z)V");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_setReadOnlySingleLine, jni_env, java_class, "setReadOnlySingleLine", "(JLandroid/widget/EditText;Z)V");
 
 			(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
@@ -332,10 +340,12 @@ static int androidTextSetReadOnlyAttrib(Ihandle* ih, const char* value)
 
 static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_getReadOnlyMultiLine);
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_getReadOnlySingleLine);
 	bool is_read_only = 0;
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 
 
@@ -344,7 +354,7 @@ static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 	{
 		case IUPANDROIDTEXTSUBTYPE_VIEW:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlyMultiLine", "(JLandroid/widget/EditText;)Z");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_getReadOnlyMultiLine, jni_env, java_class, "getReadOnlyMultiLine", "(JLandroid/widget/EditText;)Z");
 
 			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
@@ -357,7 +367,7 @@ static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 		}
 		case IUPANDROIDTEXTSUBTYPE_FIELD:
 		{
-			method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "getReadOnlySingleLine", "(JLandroid/widget/EditText;)Z");
+			method_id = IUPJNI_GetStaticMethodID(IupTextHelper_getReadOnlySingleLine, jni_env, java_class, "getReadOnlySingleLine", "(JLandroid/widget/EditText;)Z");
 
 			is_read_only = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id,
 					(jlong)(intptr_t) ih,
@@ -386,9 +396,12 @@ static char* androidTextGetReadOnlyAttrib(Ihandle* ih)
 
 static int androidTextMapMethod(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_createMultiLineText);
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_createSpinnerText);
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupTextHelper_createSingleLineText);
 
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
+	jclass java_class = IUPJNI_FindClass(IupTextHelper, jni_env, "br/pucrio/tecgraf/iup/IupTextHelper");
 	jmethodID method_id = NULL;
 	char* attribute_value = NULL;
 	jobject java_widget = NULL;
@@ -399,7 +412,7 @@ static int androidTextMapMethod(Ihandle* ih)
 	if(ih->data->is_multiline)
 	{
 
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createMultiLineText",
+		method_id = IUPJNI_GetStaticMethodID(IupTextHelper_createMultiLineText, jni_env, java_class, "createMultiLineText",
 												  "(J)Landroid/widget/EditText;");
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 														 (jlong) (intptr_t) ih);
@@ -412,7 +425,7 @@ static int androidTextMapMethod(Ihandle* ih)
 	else if(iupAttribGetBoolean(ih, "SPIN"))
 	{
 		// FIXME: This is just a single line text view. May need to change return type.
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createSpinnerText",
+		method_id = IUPJNI_GetStaticMethodID(IupTextHelper_createSpinnerText, jni_env, java_class, "createSpinnerText",
 												  "(J)Landroid/widget/EditText;");
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 														 (jlong) (intptr_t) ih);
@@ -421,7 +434,7 @@ static int androidTextMapMethod(Ihandle* ih)
 	}
 	else
 	{
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createSingleLineText",
+		method_id = IUPJNI_GetStaticMethodID(IupTextHelper_createSingleLineText, jni_env, java_class, "createSingleLineText",
 												  "(J)Landroid/widget/EditText;");
 		java_widget = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
 														 (jlong) (intptr_t) ih);
@@ -451,13 +464,14 @@ static void androidTextUnMapMethod(Ihandle* ih)
 {
 	if(ih && ih->handle)
 	{
+		IUPJNI_DECLARE_METHOD_ID_STATIC(IupCommon_removeWidgetFromParent);
 		JNIEnv* jni_env;
 		jclass java_class;
 		jmethodID method_id;
 		jni_env = iupAndroid_GetEnvThreadSafe();
 
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "removeWidgetFromParent", "(J)V");
+		java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
+		method_id = IUPJNI_GetStaticMethodID(IupCommon_removeWidgetFromParent, jni_env, java_class, "removeWidgetFromParent", "(J)V");
 		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, (jlong)(intptr_t)ih);
 		(*jni_env)->DeleteLocalRef(jni_env, java_class);
 

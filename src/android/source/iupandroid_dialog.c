@@ -36,6 +36,10 @@
 #include "iupandroid_drv.h"
 #include <jni.h>
 #include <android/log.h>
+#include "iupandroid_jnimacros.h"
+
+IUPJNI_DECLARE_CLASS_STATIC(IupActivity);
+
 
 // REMOVE these
 #define TEMP_HARDCODED_WIDTH 1024
@@ -318,6 +322,7 @@ static int androidDialogSetTitleAttrib(Ihandle* ih, const char* value)
 
 static int androidDialogMapMethod(Ihandle* ih)
 {
+	IUPJNI_DECLARE_METHOD_ID_STATIC(IupActivity_createActivity);
     JNIEnv* jni_env;
 	jclass java_class;
     jmethodID method_id;
@@ -340,8 +345,8 @@ static int androidDialogMapMethod(Ihandle* ih)
 	}
 		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "current_activity: %p", current_activity); 
 
-	java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupActivity");
-	method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "createActivity", "(Landroid/app/Activity;J)Landroid/view/ViewGroup;");
+	java_class = IUPJNI_FindClass(IupActivity, jni_env, "br/pucrio/tecgraf/iup/IupActivity");
+	method_id = IUPJNI_GetStaticMethodID(IupActivity_createActivity, jni_env, java_class, "createActivity", "(Landroid/app/Activity;J)Landroid/view/ViewGroup;");
 	view_group = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id, current_activity, (jlong)(intptr_t)ih);
 		__android_log_print(ANDROID_LOG_INFO, "androidDialogMapMethod", "view_group: %p", view_group); 
 
@@ -400,6 +405,7 @@ static void androidDialogUnMapMethod(Ihandle* ih)
 	__android_log_print(ANDROID_LOG_ERROR, "Iup", "androidDialogUnMapMethod");
 	if(ih && ih->handle)
 	{
+		IUPJNI_DECLARE_METHOD_ID_STATIC(IupActivity_unMapActivity);
 		jclass java_class;
 		jmethodID method_id;
 		JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
@@ -408,8 +414,8 @@ static void androidDialogUnMapMethod(Ihandle* ih)
 		// I'm not sure if I need to explicitly call finish() for the case where 
 		// the user explictly calls IupDestroy() before the Activity is popped.
 		// Also, because of the ViewGroup dance I do in Map, I need to check the type.
-		java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupActivity");
-		method_id = (*jni_env)->GetStaticMethodID(jni_env, java_class, "unMapActivity", "(Ljava/lang/Object;J)V");
+		java_class = IUPJNI_FindClass(IupActivity, jni_env, "br/pucrio/tecgraf/iup/IupActivity");
+		method_id = IUPJNI_GetStaticMethodID(IupActivity_unMapActivity, jni_env, java_class, "unMapActivity", "(Ljava/lang/Object;J)V");
 		(*jni_env)->CallStaticVoidMethod(jni_env, java_class, method_id, ih->handle, (jlong)(intptr_t)ih);
 
 		// Optional: Free up the temporaries.
