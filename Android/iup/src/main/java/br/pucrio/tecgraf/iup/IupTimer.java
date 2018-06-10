@@ -18,7 +18,14 @@ public final class IupTimer extends Handler
 
 	private void startElapsedTime()
 	{
-		startTime = System.currentTimeMillis();
+		// Don't use currentTimeMillis because it is not monotonic and may be changed by NTP, daylight savings, etc.
+		// uptimeMillis() is monotonic. Stops counting when enters deep-sleep.
+		// elapsedRealtime() is monotonic. Does not stop counting when enters deep-sleep.
+		// Not sure which is best, but I'm picking uptimeMillis() thinking of a media/game timer for animation, 
+		// where we wouldn't count deep-sleep interruptions since the app would 
+		// be frozen and expected to resume where it left off (e.g. watching a movie).
+		//startTime = System.currentTimeMillis();
+		startTime = System.uptimeMillis();
 	}
 
 	private void stopElapsedTime()
@@ -28,7 +35,7 @@ public final class IupTimer extends Handler
 	
 	public long getElapsedTime()
 	{
-		long elapsed_time = System.currentTimeMillis() - startTime;
+		long elapsed_time = System.uptimeMillis() - startTime;
 		return elapsed_time;
 	}
 
