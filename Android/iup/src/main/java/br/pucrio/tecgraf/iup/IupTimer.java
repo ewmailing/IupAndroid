@@ -2,6 +2,7 @@ package br.pucrio.tecgraf.iup;
 
 //import android.util.Log;
 import android.os.Handler;
+import android.os.SystemClock;
 
 
 public final class IupTimer extends Handler
@@ -25,7 +26,7 @@ public final class IupTimer extends Handler
 		// where we wouldn't count deep-sleep interruptions since the app would 
 		// be frozen and expected to resume where it left off (e.g. watching a movie).
 		//startTime = System.currentTimeMillis();
-		startTime = System.uptimeMillis();
+		startTime = SystemClock.uptimeMillis();
 	}
 
 	private void stopElapsedTime()
@@ -35,7 +36,7 @@ public final class IupTimer extends Handler
 	
 	public long getElapsedTime()
 	{
-		long elapsed_time = System.uptimeMillis() - startTime;
+		long elapsed_time = SystemClock.uptimeMillis() - startTime;
 		return elapsed_time;
 	}
 
