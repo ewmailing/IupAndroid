@@ -26,6 +26,8 @@ android {
 			main {
 				// We instruct CMake to copy liblua.so to Android/iuptestapplua/build/jniLibs
 				jniLibs.srcDirs = ['build/jniLibs']
+				// Our CMake process will copy asset files from other directories to this temporary/staging directory. (Do not check in files in this directory.)
+				assets.srcDirs = ['build/tmp/assets']
 			}
 		}
 
@@ -85,4 +87,15 @@ repositories {
 	flatDir{
 		dirs 'libs'
 	}
+}
+
+// We are using CMake to specify what files are assets. But Gradle normally runs CMake too late in the entire build process to pick up the assets that CMake copies to the target directory.
+// So this will force Android Studio to run CMake earlier in its build process.
+project.afterEvaluate {
+	// Drat: The direct approach doesn't work because only one task variant (Debug or Release) is defined at any time. So the other (e.g. Release) triggers an error of not existing and breaking the build.
+	//      checkDebugManifest.dependsOn externalNativeBuildDebug
+	//      checkReleaseManifest.dependsOn externalNativeBuildRelease
+	// This findByName with the optional ? seems to work around the problem. try/catch might also work if this is a problem.
+	tasks.findByName('checkDebugManifest')?.dependsOn tasks.findByName('externalNativeBuildDebug')
+	tasks.findByName('checkReleaseManifest')?.dependsOn tasks.findByName('externalNativeBuildRelease')
 }

@@ -18,7 +18,9 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 	{
 		return new String[]
 				{
-						"MyIupProgram",
+//						"MyIupProgram",
+						"iuptestapp",
+						"iupimglib",
 						"iup",
 				};
 	}
@@ -26,6 +28,7 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 	@Override
 	public String getEntryPointLibraryName()
 	{
-		return "libMyIupProgram.so";
+//		return "libMyIupProgram.so";
+		return "libiuptestapp.so";
 	}
 }

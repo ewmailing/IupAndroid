@@ -18,7 +18,7 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 	{
 		return new String[]
 				{
-						"MyIupProgramWebBrowser",
+						"iuptestappwebbrowser",
 						"iupweb",
 						"iup",
 				};
@@ -27,6 +27,6 @@ public class MyIupLaunchActivity extends IupLaunchActivity
 	@Override
 	public String getEntryPointLibraryName()
 	{
-		return "libMyIupProgramWebBrowser.so";
+		return "libiuptestappwebbrowser.so";
 	}
 }
