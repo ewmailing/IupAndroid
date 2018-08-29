@@ -236,7 +236,12 @@ View child_view = null;
 	}
 	public static boolean isActive(Object the_widget)
 	{
-		if(the_widget instanceof android.view.View)
+		if(null == the_widget)
+		{
+			Log.e("Java IupCommon isActive", "the_widget is null");
+			return true; // assume the widget is null because it is being initialized and thus active by default?
+		}
+		else if(the_widget instanceof android.view.View)
 		{
 			View the_view = (View)the_widget;
 			return the_view.isEnabled();

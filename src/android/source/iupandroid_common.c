@@ -393,7 +393,7 @@ int iupdrvIsActive(Ihandle *ih)
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
 
 	java_class = IUPJNI_FindClass(IupCommon, jni_env, "br/pucrio/tecgraf/iup/IupCommon");
-	method_id = IUPJNI_GetStaticMethodID(IupCommon_isActive, jni_env, java_class, "isActive", "(Ljava/lang/Object)Z");
+	method_id = IUPJNI_GetStaticMethodID(IupCommon_isActive, jni_env, java_class, "isActive", "(Ljava/lang/Object;)Z");
 	jboolean ret_val = (*jni_env)->CallStaticBooleanMethod(jni_env, java_class, method_id, widget_object);
 
 	(*jni_env)->DeleteLocalRef(jni_env, java_class);

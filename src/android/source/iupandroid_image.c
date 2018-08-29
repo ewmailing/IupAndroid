@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <stdbool.h>
 
 #include "iup.h"
 
@@ -16,6 +17,15 @@
 #include "iup_image.h"
 
 #include "iupandroid_drv.h"
+#include <android/bitmap.h> // link to jnigraphics
+
+#include <android/log.h>
+#include <jni.h>
+#include "iupandroid_jnimacros.h"
+#include "iupandroid_jnicacheglobals.h"
+
+IUPJNI_DECLARE_CLASS_STATIC(IupImageHelper);
+IUPJNI_DECLARE_METHOD_ID_STATIC(IupImageHelper_createBitmap);
 
 
 /* Adapted from SDL (zlib)
@@ -85,49 +95,242 @@ void iupdrvImageGetRawData(void* handle, unsigned char* imgdata)
 // FIXME: Carried over implementation. Probably wrong. Untested, don't know what calls this, don't know how to test.
 void* iupdrvImageCreateImageRaw(int width, int height, int bpp, iupColor* colors, int colors_count, unsigned char *imgdata)
 {
-#if 0
-  int x,y;
-  unsigned char *red,*green,*blue,*alpha;
-  void *theArray[1];
-  unsigned char *pixels = malloc(width*height*bpp);
-  theArray[0] = (void*)pixels;
-  int planesize = width*height;
-  red = imgdata;
-  green = imgdata+planesize;
-  blue = imgdata+2*planesize;
-  alpha = imgdata+3*planesize;
-  for(y=0;y<height;y++){
-    for(x=0;x<width;x++) {
-      *pixels++ = *red++;
-      *pixels++ = *green++;
-      *pixels++ = *blue++;
-      if(bpp==32)
-        *pixels++ = *alpha;
-    }
-  }
-	NSBitmapImageRep* theRep;
-	
-if(bpp==32)
-{
- theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-			pixelsWide:width pixelsHigh:height bitsPerSample:8
-				samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-				colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-				bitsPerPixel:bpp];
-}
-else
-{
-	theRep=[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&theArray
-												   pixelsWide:width pixelsHigh:height bitsPerSample:8
-											  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-											   colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:0
-												 bitsPerPixel:bpp];
-}
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  [image addRepresentation:theRep];
-  return (void*)CFBridgingRetain(image);
-#endif
-  return NULL;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jmethodID method_id = NULL;
+	jobject java_bitmap = NULL;
+	int ret_val;
+	AndroidBitmapInfo bitmap_info;
+
+
+	jclass java_class = IUPJNI_FindClass(IupImageHelper, jni_env, "br/pucrio/tecgraf/iup/IupImageHelper");
+	method_id = IUPJNI_GetStaticMethodID(IupImageHelper_createBitmap, jni_env, java_class, "createBitmap", "(III)Landroid.graphics.Bitmap;");
+
+
+	if(32 == bpp)
+	{
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
+
+		// Note that the Android format is ARGB
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+
+		// Technically we are iterating through the source image, not the target image, so using bitmap_info.stride feels wrong.
+		// int row_length = bitmap_info.stride/(32/8);
+		int row_length = CalculateRowLength(width, 4);
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+				unsigned char s_a = *source_pixel;
+				source_pixel++;
+
+				// Need to swap RGBA to ARGB???
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
+
+	}
+	else if(24 == bpp)
+	{
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
+
+		// The only useful format Android provides for this case is ARGB (bpp=32), so we need to convert to 32-bit
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+
+		// Technically we are iterating through the source image, not the target image, so using bitmap_info.stride feels wrong.
+		// int row_length = bitmap_info.stride/(24/8);
+		int row_length = CalculateRowLength(width, 3);
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				// Need to convert RGB to ARGB
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = 255;
+				pixels++;
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
+
+	}
+	else if(8 == bpp)
+	{
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
+		int has_alpha = false;
+
+		// The only useful format Android provides for this case is ARGB (bpp=32), so we need to convert to 32-bit
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		// int row_length = bitmap_info.stride/(32/8);
+		int row_length = CalculateRowLength(width, 4);
+
+		int colors_count = 0;
+		iupColor colors[256];
+		
+		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
+
+				unsigned char s_r = c->r;
+				unsigned char s_g = c->g;
+				unsigned char s_b = c->b;
+				unsigned char s_a;
+
+				if(has_alpha)
+				{
+					s_a = c->a;
+				}
+				else
+				{
+					s_a = 255;
+				}
+
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+
+
+				source_pixel++;
+
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
+
+	}
+		
+
+CLEANUP:
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	if(NULL != java_bitmap)
+	{
+		jobject return_bitmap = (*jni_env)->NewGlobalRef(jni_env, java_bitmap);
+		(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+		return return_bitmap;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colors, int *colors_count)
@@ -142,189 +345,215 @@ int iupdrvImageGetRawInfo(void* handle, int *w, int *h, int *bpp, iupColor* colo
 // NOTE: Returns an autoreleased NSImage.
 void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive)
 {
-#if 0
-  int y, x, bpp, bgcolor_depend = 0,
-      width = ih->currentwidth,
-      height = ih->currentheight;
-  unsigned char *imgdata = (unsigned char*)iupAttribGetStr(ih, "WID");
-  unsigned char bg_r=0, bg_g=0, bg_b=0;
-  bpp = iupAttribGetInt(ih, "BPP");
-  iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jmethodID method_id = NULL;
+	jobject java_bitmap = NULL;
+	int ret_val;
+	AndroidBitmapInfo  bitmap_info;
 
-  NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-  if (!image)
-  {
-    return NULL;
-  }
-	
-	NSBitmapImageRep* bitmap_image = nil;
+	int bpp;
+	int width;
+	int height;
+	unsigned char* imgdata = (unsigned char*)iupAttribGetStr(ih, "WID");
 
-	
+	width = ih->currentwidth;
+	height = ih->currentheight;
+	bpp = iupAttribGetInt(ih, "BPP");
+
+	unsigned char bg_r=0, bg_g=0, bg_b=0;
+	iupStrToRGB(bgcolor, &bg_r, &bg_g, &bg_b);
+
+
+	jclass java_class = IUPJNI_FindClass(IupImageHelper, jni_env, "br/pucrio/tecgraf/iup/IupImageHelper");
+	method_id = IUPJNI_GetStaticMethodID(IupImageHelper_createBitmap, jni_env, java_class, "createBitmap", "(III)Landroid/graphics/Bitmap;");
+
+
+
+
+
 	if(32 == bpp)
 	{
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-														 pixelsWide:width pixelsHigh:height bitsPerSample:8
-													samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-													 colorSpaceName:NSDeviceRGBColorSpace
-															// I thought this should be 0 because I thought I want pre-multipled alpha, but some png's I'm testing render better with this flag.
-															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-														bytesPerRow:CalculateBytesPerRow(width, 4)
-													   bitsPerPixel:32
-						];
-	}
-	else if(24 == bpp)
-	{
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-															   pixelsWide:width pixelsHigh:height bitsPerSample:8
-														  samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace
-															// untested
-															 bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-															  bytesPerRow:CalculateBytesPerRow(width, 3)
-													   bitsPerPixel:24
-						];
-	}
-	else if(8 == bpp)
-	{
-		
-		// We'll make a full 32-bit image for this case
-		bitmap_image = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-															   pixelsWide:width pixelsHigh:height bitsPerSample:8
-														  samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-														   colorSpaceName:NSDeviceRGBColorSpace
-															// untested
-															bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
-															  bytesPerRow:CalculateBytesPerRow(width, 4)
-													   bitsPerPixel:32
-						];
-		
-	}
-	else
-	{
-		[image release];
-		return NULL;
-	}
-	
-	
-	
-	if(32 == bpp)
-	{
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
 
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
+		// Note that the Android format is ARGB
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+//		void* start_pixels = NULL;
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+//		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, &start_pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+//		pixels = (unsigned char*)start_pixels;
+
+		// Technically we are iterating through the source image, not the target image, so using bitmap_info.stride feels wrong.
+		// int row_length = bitmap_info.stride/(32/8);
 		int row_length = CalculateRowLength(width, 4);
 
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+				unsigned char s_a = *source_pixel;
+				source_pixel++;
 
-		
-		source_pixel = imgdata;
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
 
-		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
-				  /*
-				   *pixels++ = *red++;
-				   *pixels++ = *green++;
-				   *pixels++ = *blue++;
-				   */
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  *pixels = *source_pixel;
-				  pixels++;
-				  source_pixel++;
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				  if(bpp==32)
-				  {
-			 //   *pixels++ = *alpha++;
-					  
-					  *pixels = *source_pixel;
-					  pixels++;
-					  source_pixel++;
-				  }
-				  else
-				  {
-					  //      *pixels++ = 255;
-					  
-					  *pixels = 255;
-					  pixels++;
-				  }
-			  }
-		  }
+				// Need to swap RGBA to ARGB???
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
 
-		
-		
-		
-		
 	}
 	else if(24 == bpp)
 	{
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
-		
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
-		
-		int row_length = CalculateRowLength(width, 3);
-		
-		source_pixel = imgdata;
-		
-		
-  for(y=0;y<height;y++){
-	  for(x=0;x<row_length;x++) {
-		  /*
-		   *pixels++ = *red++;
-		   *pixels++ = *green++;
-		   *pixels++ = *blue++;
-		   */
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  *pixels = *source_pixel;
-		  pixels++;
-		  source_pixel++;
-		  
-		  
-		  if(make_inactive) {
-			  unsigned char r = *(pixels-3),
-			  g = *(pixels-2),
-			  b = *(pixels-1);
-			  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-		  }
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
 
-		  
-	  }
-  }
-		
-		
+		// The only useful format Android provides for this case is ARGB (bpp=32), so we need to convert to 32-bit
+		// NOTE: RGB565 is available, but I need to figure out how to write to pixels (the whole argb vs rgba surprise is making me untrusting).
+		// Also, the quality loss going from 24-bit to 16-bit may not be acceptable.
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+
+		// Technically we are iterating through the source image, not the target image, so using bitmap_info.stride feels wrong.
+		// int row_length = bitmap_info.stride/(24/8);
+		int row_length = CalculateRowLength(width, 3);
+
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				// Need to convert RGB to ARGB
+				unsigned char s_r = *source_pixel;
+				source_pixel++;
+				unsigned char s_g = *source_pixel;
+				source_pixel++;
+				unsigned char s_b = *source_pixel;
+				source_pixel++;
+
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
+
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = 255;
+				pixels++;
+
+
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
 
 	}
 	else if(8 == bpp)
 	{
-#if 1
-		//  unsigned char *red,*green,*blue,*alpha;
-		unsigned char* source_pixel;
-		
-		//  unsigned char *pixels = malloc(width*height*bpp);
-		unsigned char *pixels = [bitmap_image bitmapData];
-		
+		unsigned char* pixels;
+		unsigned char* source_pixel = imgdata;
+
+		// The only useful format Android provides for this case is ARGB (bpp=32), so we need to convert to 32-bit
+		// (Android's 8-bit format seems to be for alpha/luminance, not palettes.)
+		// createBitmap()
+		java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+			(jint)width,
+			(jint)height,
+			(jint)32
+		);	
+		if(NULL == java_bitmap)
+		{
+			goto CLEANUP;
+		}
+
+		ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+		ret_val = AndroidBitmap_lockPixels(jni_env, java_bitmap, (void**)&pixels);
+		if(ret_val < 0)
+		{
+			(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+			java_bitmap = NULL;
+			__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+			goto CLEANUP;
+		}
+
+		// int row_length = bitmap_info.stride/(32/8);
 		int row_length = CalculateRowLength(width, 4);
 
 		int colors_count = 0;
@@ -333,85 +562,71 @@ void* iupdrvImageCreateImage(Ihandle *ih, const char* bgcolor, int make_inactive
 		int has_alpha = iupImageInitColorTable(ih, colors, &colors_count);
 
 		
+		for(int y=0;y<height;y++)
+		{
+			for(int x=0;x<row_length;x++)
+			{
+				unsigned char index = *source_pixel;
+				iupColor* c = &colors[index];
 
-		
-		
-		
-		source_pixel = imgdata;
-		
-		
-		  for(y=0;y<height;y++){
-			  for(x=0;x<row_length;x++) {
+				unsigned char s_r = c->r;
+				unsigned char s_g = c->g;
+				unsigned char s_b = c->b;
+				unsigned char s_a;
 
-				  unsigned char index = *source_pixel;
-				  iupColor* c = &colors[index];
+				if(has_alpha)
+				{
+					s_a = c->a;
+				}
+				else
+				{
+					s_a = 255;
+				}
 
-				  *pixels = c->r;
-				  pixels++;
-				  *pixels = c->g;
-				  pixels++;
-				  *pixels = c->b;
-				  pixels++;
-				  
-				  if (has_alpha)
-				  {
-					  *pixels = c->a;
-				  }
-				  else
-				  {
-					  *pixels = 255;
-				  }
-				  pixels++;
-				  source_pixel++;
+				if(make_inactive)
+				{
+					iupImageColorMakeInactive(&s_r, &s_g, &s_b, bg_r, bg_g, bg_b);
+				}
 
-				  
-				  
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
 
-				  
-				  
-				  /*
-				  if(make_inactive) {
-					  unsigned char r = *(pixels-3),
-					  g = *(pixels-2),
-					  b = *(pixels-1);
-					  iupImageColorMakeInactive(&r, &g, &b, bg_r, bg_g, bg_b);
-				  }
-				   */
-			  }
-		  }
+				// Even though the declared format is ARGB, experimentally setting this array, the order seems to be RGBA.
+				*pixels = s_r;
+				pixels++;
+				*pixels = s_g;
+				pixels++;
+				*pixels = s_b;
+				pixels++;
+				*pixels = s_a;
+				pixels++;
+
+
+				source_pixel++;
+
+			}
+		}
+		AndroidBitmap_unlockPixels(jni_env, java_bitmap);
+
+	}
 		
+	int bgcolor_depend = 0;
+	if(bgcolor_depend || make_inactive)
+	{
+		iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
+	}
 
-		
-#endif
-		
+CLEANUP:
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+	if(NULL != java_bitmap)
+	{
+		jobject return_bitmap = (*jni_env)->NewGlobalRef(jni_env, java_bitmap);
+		(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+		return return_bitmap;
 	}
 	else
 	{
-
-		
+		return NULL;
 	}
-	
-
-	
-	
-  [image addRepresentation:bitmap_image];
-  if (bgcolor_depend || make_inactive)
-    iupAttribSetStr(ih, "_IUP_BGCOLOR_DEPEND", "1");
-
-//  return (void*)CFBridgingRetain(image);
-
-	// Doing an autorelease because the typical pattern is to call image = iupImageGetImage(),
-	// and then call [foo setImage:image];
-	// It is easy to forget to release the image for android because the API doesn't use new/create/alloc in the name.
-	return [image autorelease];
-#endif
-	return NULL;
 }
 
 void* iupdrvImageCreateIcon(Ihandle *ih)
@@ -527,41 +742,80 @@ void* iupdrvImageCreateMask(Ihandle *ih)
 
 void* iupdrvImageLoad(const char* name, int type)
 {
-#if 0
-  //int iup2mac[3] = {IMAGE_BITMAP, IMAGE_ICON, IMAGE_CURSOR};
-  NSImage *image;
-  NSString *path = [[NSString alloc] initWithUTF8String:name];
-  image = [[NSImage alloc] initWithContentsOfFile: path];
-  NSBitmapImageRep *rep = [[image representations] objectAtIndex: 0];
-  // If you think you might get something other than a bitmap image representation,
-  // check for it here.
+	if(NULL == name)
+	{
+		return NULL;
+	}
 
-  NSSize size = NSMakeSize ([rep pixelsWide], [rep pixelsHigh]);
-  [image setSize: size];
-  
-  return (void*)CFBridgingRetain(image);
-#endif
-  return NULL;
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	jmethodID method_id = NULL;
+	jobject java_bitmap = NULL;
+
+	jclass java_class = IUPJNI_FindClass(IupImageHelper, jni_env, "br/pucrio/tecgraf/iup/IupImageHelper");
+	method_id = IUPJNI_GetStaticMethodID(IupImageHelper_createBitmap, jni_env, java_class, "loadBitmap", "(Ljava/lang/String;)Landroid.graphics.Bitmap;");
+
+
+	jstring j_string = (*jni_env)->NewStringUTF(jni_env, name);
+	java_bitmap = (*jni_env)->CallStaticObjectMethod(jni_env, java_class, method_id,
+		j_string
+	);	
+	(*jni_env)->DeleteLocalRef(jni_env, j_string);
+	(*jni_env)->DeleteLocalRef(jni_env, java_class);
+
+
+	if(NULL != java_bitmap)
+	{
+		jobject return_bitmap = (*jni_env)->NewGlobalRef(jni_env, java_bitmap);
+		(*jni_env)->DeleteLocalRef(jni_env, java_bitmap);
+		return return_bitmap;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 int iupdrvImageGetInfo(void* handle, int *w, int *h, int *bpp)
 {
-#if 0
-  NSImage *image = (__bridge NSImage*)handle;
-  NSBitmapImageRep *bitmap = nil;
-  if([[image representations] count]>0) bitmap = [[image representations] objectAtIndex:0];
-  if(bitmap==nil) return 0;
-  if(w) *w = [bitmap pixelsWide];
-  if(h) *h = [bitmap pixelsHigh];
-  if(bpp) *bpp = [bitmap bitsPerPixel];
-#endif
-  return 1;
+	jobject java_bitmap = (jobject)handle;
+	if(NULL == java_bitmap)
+	{
+		return 0;
+	}
+
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	int ret_val;
+	AndroidBitmapInfo bitmap_info;
+
+	ret_val = AndroidBitmap_getInfo(jni_env, java_bitmap, &bitmap_info);
+	if(ret_val < 0)
+	{
+		__android_log_print(ANDROID_LOG_ERROR, "iupandroid_image", "AndroidBitmap_getInfo() failed:%d", ret_val);
+		return 0;
+	}
+	
+  	if(w) *w = bitmap_info.width;
+	if(h) *h = bitmap_info.height;
+
+	// We only can use ARGB_8888 for all formats, this is always going to be 32
+	if(bpp) *bpp = 32;
+
+
+	return 1;
 }
 
 // [NSApp setApplicationIconImage: [NSImage imageNamed: @"Icon_name.icns"]]
 
 void iupdrvImageDestroy(void* handle, int type)
 {
+	if(NULL == handle)
+	{
+		return;
+	}
+	
+	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
+	(*jni_env)->DeleteGlobalRef(jni_env, (jobject)handle);
+	
 }
 
 void iupdrvImageGetData(void* handle, unsigned char* imgdata)

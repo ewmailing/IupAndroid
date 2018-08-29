@@ -1,5 +1,6 @@
 package br.pucrio.tecgraf.iup;
 
+import android.graphics.Bitmap;
 import android.view.View;
 import java.lang.Object;
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.view.View;
 //import android.app.Activity;
 import android.util.Log;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import br.pucrio.tecgraf.iup.IupApplication;
@@ -47,5 +49,32 @@ public final class IupLabelHelper
 		return text_view.getText().toString();
 	}
 
+
+	public static ImageView createLabelImage(final long ihandle_ptr)
+	{
+		Context context = (Context)IupApplication.getIupApplication();
+		ImageView image_view = new ImageView(context);
+		image_view.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+//		image_view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+		image_view.setAdjustViewBounds(true);
+//		image_view.getLayoutParams().width = 40;
+//		image_view.getLayoutParams().height = 40;
+//		image_view.requestLayout();
+		return image_view;
+	}
+
+	public static void setImage(final long ihandle_ptr, ImageView image_view, Bitmap bitmap_image)
+	{
+		image_view.setImageBitmap(bitmap_image);
+		if(null == bitmap_image)
+		{
+			return;
+		}
+		// FIXME: I don't know what the IUP policy is about setting the ImageView size
+		image_view.getLayoutParams().width = bitmap_image.getWidth();
+		image_view.getLayoutParams().height = bitmap_image.getHeight();
+		image_view.requestLayout();
+	}
+	
 }
 
