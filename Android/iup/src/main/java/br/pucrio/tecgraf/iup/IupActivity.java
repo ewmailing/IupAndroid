@@ -229,7 +229,7 @@ public class IupActivity extends AppCompatActivity
 	}
 
 	/** Called when the activity is about to be destroyed. */
-	// TODO: I think the CLOSE_CB needs to go here.
+	// I think the CLOSE_CB needs to go here.
 	// We need to handle the case where the OS just kills an Activity for low RAM reasons.
 	// This is akin to a user closing a window on a whim, but it is not possible to reject.
 	@Override
@@ -237,9 +237,17 @@ public class IupActivity extends AppCompatActivity
 	{
 		Log.i("HelloAndroidIupActivity", "calling onDestroy");
 //		doDestroy();
-		
+
+
 		Intent the_intent = getIntent();
  		long ihandle_ptr = the_intent.getLongExtra("Ihandle", 0);
+
+ 		// In case Android decides to kill the Activity, the developer needs to know it got destroyed.
+		// At the very least, the developer should know to clean up their Dialog ih pointer.
+		// This is analogous to a user closing a window on the desktop, except that the developer cannot refuse the action.
+		IupCommon.handleIupCallback(ihandle_ptr, "CLOSE_CB");
+
+
 		IupCommon.releaseIhandle(ihandle_ptr);
 
 		super.onDestroy();
