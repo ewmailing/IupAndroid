@@ -242,13 +242,17 @@ public class IupActivity extends AppCompatActivity
 		Intent the_intent = getIntent();
  		long ihandle_ptr = the_intent.getLongExtra("Ihandle", 0);
 
- 		// In case Android decides to kill the Activity, the developer needs to know it got destroyed.
-		// At the very least, the developer should know to clean up their Dialog ih pointer.
-		// This is analogous to a user closing a window on the desktop, except that the developer cannot refuse the action.
-		IupCommon.handleIupCallback(ihandle_ptr, "CLOSE_CB");
+ 		// In case the user directly invoked unMap (by manually destroying their dialog),
+		// then we already cleaned up in unMap.
+ 		if(ihandle_ptr != 0)
+		{
+			// In case Android decides to kill the Activity, the developer needs to know it got destroyed.
+			// At the very least, the developer should know to clean up their Dialog ih pointer.
+			// This is analogous to a user closing a window on the desktop, except that the developer cannot refuse the action.
+			IupCommon.handleIupCallback(ihandle_ptr, "CLOSE_CB");
 
-
-		IupCommon.releaseIhandle(ihandle_ptr);
+			IupCommon.releaseIhandle(ihandle_ptr);
+		}
 
 		super.onDestroy();
 
@@ -438,7 +442,23 @@ public class IupActivity extends AppCompatActivity
 			Activity the_activity = (Activity)activity_or_viewgroup;
 			the_activity.finish();
 
-		Log.i("HelloAndroidIupActivity", "calling finish() in unMapActivity");		
+			// We are going to unref the pointer from C and clear the ih->handle field.
+			// We are not going to wait for onDestroy() because in onDestroy(), it is ambiguous about how we got there and what is cleaned up.
+			// (See comments where we clear the Ihandle in the Intent.)
+			IupCommon.releaseIhandle(ihandle_ptr);
+
+			// It is unclear when onDestroy() gets invoked.
+			// Additionally, when in onDestroy() it is hard to know whether Android killed the Activity, or if the developer called this function to manually destroy the Activity.
+			// So we should clear the Ihandle pointer value here to NULL, so onDestroy doesn't try to use a dangling pointer if we came from here (rather than Android just killing the Activity).
+			// Note: This will prevent the CLOSE_CB from being invoked, but I think that is okay for this case.
+			// Note: I am uncertain if this should be set after or before calling finish().
+			Intent the_intent = the_activity.getIntent();
+//			the_intent.putExtra("Ihandle", 0);
+			the_intent.removeExtra("Ihandle");
+
+
+
+			Log.i("HelloAndroidIupActivity", "calling finish() in unMapActivity");
 			
 		}
 
