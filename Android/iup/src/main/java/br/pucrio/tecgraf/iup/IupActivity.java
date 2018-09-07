@@ -368,7 +368,7 @@ public class IupActivity extends AppCompatActivity
 		// The new AAR libraries for Android might solve this, but everybody is going to have to spend
 		// time getting their build systems to properly build Iup and then import Iup into their projects.
 		// For now, comment out the overridingPendingTransitions until we have the infrastructure to support it.
-//		overridePendingTransition(R.anim.iup_slide_from_left, R.anim.iup_slide_to_right);
+		overridePendingTransition(R.anim.iup_slide_from_left, R.anim.iup_slide_to_right);
 	}
 
     public void myClickHandler(View the_view)
@@ -413,7 +413,7 @@ public class IupActivity extends AppCompatActivity
 		// The new AAR libraries for Android might solve this, but everybody is going to have to spend
 		// time getting their build systems to properly build Iup and then import Iup into their projects.
 		// For now, comment out the overridingPendingTransitions until we have the infrastructure to support it.
-//		parent_activity.overridePendingTransition(R.anim.iup_slide_from_right, R.anim.iup_slide_to_left);
+		parent_activity.overridePendingTransition(R.anim.iup_slide_from_right, R.anim.iup_slide_to_left);
 
 		RelativeLayout root_view = new RelativeLayout(parent_activity);
 		return root_view;
