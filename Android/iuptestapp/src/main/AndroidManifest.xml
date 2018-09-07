@@ -8,9 +8,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Material"
+        android:theme="@style/AppTheme"
         android:hardwareAccelerated="true"
-        android:largeHeap="true"		
+        android:largeHeap="true"
 		android:isGame="false"
 		android:name=".MyIupApplication"
 		
@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-	
+
         <!-- This is optional. This allows you to change the name of the IupEntryPoint function you use. You may completely remove this line if you don't need to change the name. -->
         <meta-data android:name="ENTRY_POINT" android:value="IupEntryPoint" />
  

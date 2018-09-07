@@ -4,7 +4,8 @@
 >
 
 	<application android:supportsRtl="true"
-    >
+				 android:theme="@style/AppTheme"
+		>
 		<activity 
 			android:name="br.pucrio.tecgraf.iup.IupLaunchActivity"
 			android:configChanges="orientation|keyboardHidden|screenSize"

@@ -1,5 +1,7 @@
 package br.pucrio.tecgraf.iup;
 
+import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.InputType;
 import android.text.method.KeyListener;
 import android.view.View;
@@ -18,8 +20,28 @@ public final class IupTextHelper
 	// value must be final in order to access in inner class
 	public static EditText createMultiLineText(final long ihandle_ptr)
 	{
-		Context context = (Context)IupApplication.getIupApplication();
-		EditText text_view = new EditText(context);
+		//Context context = (Context)IupApplication.getIupApplication();
+		// I discovered the hard way that passing the application context to the EditView or AppCompatEditView
+		// does not apply the theme.
+		// In my isolated cases, passing the Activity context instead of the Application context avoids the problem.
+		// However, because Android defers the creation of the Activity to some time later,
+		// and Iup's routines need to keep chugging along in one uninterrupted stream,
+		// I don't have the Activity to pass at this point.
+		// (I tried startActivity in AsyncTask, but the onCreate still gets deferred, even if I sleep.)
+		// Fortunately, ContextThemeWrapper will let us grab the theme.
+		// TODO: Is the hardcoded R.style.AppTheme going to be a problem for people who want to customize their themes?
+		// Maybe we make this a string we can read?
+		// The other more complicated idea I had was to keep a list with the temporary ViewGroup,
+		// and whenever a widget gets added that needs a proper theme, we add to the list so when the we finally get the Activity,
+		// we can go through the list and create/copy/replace/destroy the widgets with a newly created copy with the Activity as the context.
+		// That will be painful, so I'm glad we can do this.
+		//ContextThemeWrapper theme_context = new ContextThemeWrapper(context, R.style.AppTheme);
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+
+//		EditText text_view = new AppCompatEditText(context);
+		EditText text_view = new AppCompatEditText(theme_context);
+
+//		EditText text_view = new EditText(context);
 
 		/*
 //		String attrib_string = IupCommon.iupAttribGet(ihandle_ptr, "TITLE");
@@ -32,6 +54,9 @@ public final class IupTextHelper
 		}
 */
 
+		//text_view.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+		savedKeyListener = text_view.getKeyListener();
+		IupTextHelper.setReadOnlyMultiLine(ihandle_ptr, text_view, false);
 
 
 
@@ -40,9 +65,26 @@ public final class IupTextHelper
 
 	public static EditText createSingleLineText(final long ihandle_ptr)
 	{
-		Context context = (Context)IupApplication.getIupApplication();
-		EditText text_view = new EditText(context);
+		//Context context = (Context)IupApplication.getIupApplication();
+		// I discovered the hard way that passing the application context to the EditView or AppCompatEditView
+		// does not apply the theme.
+		// In my isolated cases, passing the Activity context instead of the Application context avoids the problem.
+		// However, because Android defers the creation of the Activity to some time later,
+		// and Iup's routines need to keep chugging along in one uninterrupted stream,
+		// I don't have the Activity to pass at this point.
+		// (I tried startActivity in AsyncTask, but the onCreate still gets deferred, even if I sleep.)
+		// Fortunately, ContextThemeWrapper will let us grab the theme.
+		// TODO: Is the hardcoded R.style.AppTheme going to be a problem for people who want to customize their themes?
+		// Maybe we make this a string we can read?
+		// The other more complicated idea I had was to keep a list with the temporary ViewGroup,
+		// and whenever a widget gets added that needs a proper theme, we add to the list so when the we finally get the Activity,
+		// we can go through the list and create/copy/replace/destroy the widgets with a newly created copy with the Activity as the context.
+		// That will be painful, so I'm glad we can do this.
+		//ContextThemeWrapper theme_context = new ContextThemeWrapper(context, R.style.AppTheme);
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
 
+//		EditText text_view = new AppCompatEditText(context);
+		EditText text_view = new AppCompatEditText(theme_context);
 		/*
 //		String attrib_string = IupCommon.iupAttribGet(ihandle_ptr, "TITLE");
 
@@ -55,6 +97,9 @@ public final class IupTextHelper
 */
 		text_view.setMaxLines(1);
 
+		//text_view.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
+		savedKeyListener = text_view.getKeyListener();
+		IupTextHelper.setReadOnlySingleLine(ihandle_ptr, text_view, false);
 
 
 
@@ -64,9 +109,27 @@ public final class IupTextHelper
 	// FIXME: This is just a single line TextView.
 	public static EditText createSpinnerText(final long ihandle_ptr)
 	{
-		Context context = (Context)IupApplication.getIupApplication();
-		EditText text_view = new EditText(context);
+		//Context context = (Context)IupApplication.getIupApplication();
+		// TODO: Is the Android Spinner class what we need?
+		// I discovered the hard way that passing the application context to the EditView or AppCompatEditView
+		// does not apply the theme.
+		// In my isolated cases, passing the Activity context instead of the Application context avoids the problem.
+		// However, because Android defers the creation of the Activity to some time later,
+		// and Iup's routines need to keep chugging along in one uninterrupted stream,
+		// I don't have the Activity to pass at this point.
+		// (I tried startActivity in AsyncTask, but the onCreate still gets deferred, even if I sleep.)
+		// Fortunately, ContextThemeWrapper will let us grab the theme.
+		// TODO: Is the hardcoded R.style.AppTheme going to be a problem for people who want to customize their themes?
+		// Maybe we make this a string we can read?
+		// The other more complicated idea I had was to keep a list with the temporary ViewGroup,
+		// and whenever a widget gets added that needs a proper theme, we add to the list so when the we finally get the Activity,
+		// we can go through the list and create/copy/replace/destroy the widgets with a newly created copy with the Activity as the context.
+		// That will be painful, so I'm glad we can do this.
+		//ContextThemeWrapper theme_context = new ContextThemeWrapper(context, R.style.AppTheme);
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
 
+//		EditText text_view = new AppCompatEditText(context);
+		EditText text_view = new AppCompatEditText(theme_context);
 		/*
 //		String attrib_string = IupCommon.iupAttribGet(ihandle_ptr, "TITLE");
 
@@ -78,6 +141,8 @@ public final class IupTextHelper
 		}
 */
 		text_view.setMaxLines(1);
+		savedKeyListener = text_view.getKeyListener();
+		text_view.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
 
 
 

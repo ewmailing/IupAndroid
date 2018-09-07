@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.TypedValue;
 import android.view.View;
 import android.app.Activity;
@@ -23,8 +24,9 @@ public final class IupFontHelper
 		// If there is already a text view, use
 		// Paint the_paint = textView.getPaint();
 		// 
-		IupApplication application_context = IupApplication.getIupApplication();
-		TextView text_view = new TextView(application_context);
+	//	IupApplication application_context = IupApplication.getIupApplication();
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+		TextView text_view = new TextView(theme_context);
 		Log.i("Text dimensions", "str: "+str);
 
 
@@ -38,7 +40,7 @@ public final class IupFontHelper
 
 		// https://stackoverflow.com/questions/3687065/textview-settextsize-behaves-abnormally-how-to-set-text-size-of-textview-dynam
 		// https://stackoverflow.com/questions/6263250/convert-pixels-to-sp
-		float scaledDensity = application_context.getResources().getDisplayMetrics().scaledDensity;
+		float scaledDensity = theme_context.getResources().getDisplayMetrics().scaledDensity;
 		Log.i("Text dimensions", "scaledDensity: "+scaledDensity);
 
 		float adjusted_text_size = default_text_size/scaledDensity;
@@ -47,7 +49,7 @@ public final class IupFontHelper
 		//the_paint.setTextSize(adjusted_text_size);
 		//helloWorldTextView2.setTextSize(pixelsToSp(getActivity(), helloWorldTextView.getTextSize()));
 
-		final float densityMultiplier = application_context.getResources().getDisplayMetrics().density;
+		final float densityMultiplier = theme_context.getResources().getDisplayMetrics().density;
 		Log.i("Text dimensions", "density: "+densityMultiplier);
 
 		// I'm not sure which to use
@@ -85,8 +87,9 @@ Log.i("Text dimensions", "Width: "+rect_result.width());
 		// If there is already a text view, use
 		// Paint the_paint = textView.getPaint();
 		//
-		IupApplication application_context = IupApplication.getIupApplication();
-		TextView text_view = new TextView(application_context);
+		//IupApplication application_context = IupApplication.getIupApplication();
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+		TextView text_view = new TextView(theme_context);
 		//text_view.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		//text_view.setSingleLine(false);
 
@@ -104,7 +107,7 @@ Log.i("Text dimensions", "Width: "+rect_result.width());
 
 		// https://stackoverflow.com/questions/3687065/textview-settextsize-behaves-abnormally-how-to-set-text-size-of-textview-dynam
 		// https://stackoverflow.com/questions/6263250/convert-pixels-to-sp
-		float scaled_density = application_context.getResources().getDisplayMetrics().scaledDensity;
+		float scaled_density = theme_context.getResources().getDisplayMetrics().scaledDensity;
 
 
 
@@ -179,8 +182,9 @@ The logical density of the display. This is a scaling factor for the Density Ind
 		// If there is already a text view, use
 		// Paint the_paint = textView.getPaint();
 		//
-		IupApplication application_context = IupApplication.getIupApplication();
-		TextView text_view = new TextView(application_context);
+		//IupApplication application_context = IupApplication.getIupApplication();
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+		TextView text_view = new TextView(theme_context);
 
 
 		Paint the_paint = new Paint();
@@ -191,7 +195,7 @@ The logical density of the display. This is a scaling factor for the Density Ind
 
 		// https://stackoverflow.com/questions/3687065/textview-settextsize-behaves-abnormally-how-to-set-text-size-of-textview-dynam
 		// https://stackoverflow.com/questions/6263250/convert-pixels-to-sp
-		float scaled_density = application_context.getResources().getDisplayMetrics().scaledDensity;
+		float scaled_density = theme_context.getResources().getDisplayMetrics().scaledDensity;
 
 
 

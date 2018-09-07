@@ -146,5 +146,33 @@ JNIEXPORT int JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback(JNI
 	return ret_val;
 }
 
+JNIEXPORT void JNICALL Java_br_pucrio_tecgraf_iup_IupCommon_DoResize(JNIEnv* jni_env, jclass cls, jlong ihandle_ptr, jint x, jint y, jint width, jint height)
+{
+	Ihandle* ih = (Ihandle*)(intptr_t)ihandle_ptr;
+	IFnii cb;
+	cb = (IFnii)IupGetCallback(ih, "RESIZE_CB");
+	// FIXME: Are the parameters supposed to be the contentView or the entire window. The Windows code comments make me think contentView, but the actual code makes me think entire window. The latter is way easier to do.
+	if(!cb || cb(ih, width, height)!=IUP_IGNORE)
+	{
+		ih->currentwidth = width;
+		ih->currentheight = height;
+		
+//		ih->data->ignore_resize = 1;
+		IupRefresh(ih);
+//		ih->data->ignore_resize = 0;
+	}
+	else
+	{
+		// WARNING: It is impossible to refuse a resize on Android.
+		__android_log_print(ANDROID_LOG_INFO, "Java_br_pucrio_tecgraf_iup_IupCommon_HandleIupCallback", "IUP_IGNORE not supported on iOS for RESIZE_CB");
+		ih->currentwidth = width;
+		ih->currentheight = height;
+		
+//		ih->data->ignore_resize = 1;
+		IupRefresh(ih);
+//		ih->data->ignore_resize = 0;
+	}
+	
+}
 
 

@@ -3,6 +3,7 @@ import java.lang.Object;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,11 +90,11 @@ View child_view = null;
 				ViewGroup.LayoutParams.WRAP_CONTENT
 			);
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
-			Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (Activity)");
+			//Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (Activity)");
 
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
-			layout_params.leftMargin = 5;
-			layout_params.topMargin = 5;
+//			layout_params.leftMargin = 5;
+//			layout_params.topMargin = 5;
 
 			
 			parent_view.addView(child_view, layout_params);
@@ -110,11 +111,11 @@ View child_view = null;
 			);
 			RelativeLayout.LayoutParams layout_params = new RelativeLayout.LayoutParams(vg_layout_params);
 
-			Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (ViewGroup)");
+			//Log.d("Java IupCommon addWidgetToParent", "need to remove Margin setting (ViewGroup)");
 
 			// TODO: Remove this. Setting these margins is how IUP will set the positions during layout.
-			layout_params.leftMargin = 20;
-			layout_params.topMargin = 20;
+//			layout_params.leftMargin = 20;
+//			layout_params.topMargin = 20;
 			Log.d("Java IupCommon addWidgetToParent", "child_view class name is: " + child_view.getClass().getName());
 
 
@@ -220,6 +221,12 @@ View child_view = null;
 		return HandleIupCallback(ihandle_ptr, key_string);
 	}
 
+	public native static int DoResize(long ihandle_ptr, int x, int y, int width, int height);
+	public static int doResize(long ihandle_ptr, int x, int y, int width, int height)
+	{
+		return DoResize(ihandle_ptr, x, y, width, height);
+	}
+
 
 
 	public static void setActive(Object the_widget, boolean is_active)
@@ -253,5 +260,32 @@ View child_view = null;
 		}
 	}
 
+	// TODO: Is the Android Spinner class what we need?
+	// I discovered the hard way that passing the application context to the EditView or AppCompatEditView
+	// does not apply the theme.
+	// In my isolated cases, passing the Activity context instead of the Application context avoids the problem.
+	// However, because Android defers the creation of the Activity to some time later,
+	// and Iup's routines need to keep chugging along in one uninterrupted stream,
+	// I don't have the Activity to pass at this point.
+	// (I tried startActivity in AsyncTask, but the onCreate still gets deferred, even if I sleep.)
+	// Fortunately, ContextThemeWrapper will let us grab the theme.
+	// TODO: Is the hardcoded R.style.AppTheme going to be a problem for people who want to customize their themes?
+	// (This requires that I bundle the styles.xml and colors.xml in the iup.aar.)
+	// Maybe we make this a string we can read?
+	// The other more complicated idea I had was to keep a list with the temporary ViewGroup,
+	// and whenever a widget gets added that needs a proper theme, we add to the list so when the we finally get the Activity,
+	// we can go through the list and create/copy/replace/destroy the widgets with a newly created copy with the Activity as the context.
+	// That will be painful, so I'm glad we can do this.
+	private static ContextThemeWrapper s_contextThemeWrapper = null;
+	public static ContextThemeWrapper getContextThemeWrapper()
+	{
+		if(null != s_contextThemeWrapper)
+		{
+			return s_contextThemeWrapper;
+		}
+		Context context = (Context)IupApplication.getIupApplication();
+		s_contextThemeWrapper = new ContextThemeWrapper(context, R.style.AppTheme);
+		return s_contextThemeWrapper;
+	}
 }
 

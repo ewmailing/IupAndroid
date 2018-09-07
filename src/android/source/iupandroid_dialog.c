@@ -188,6 +188,10 @@ void iupdrvDialogSetPosition(Ihandle *ih, int x, int y)
 
 void iupdrvDialogGetDecoration(Ihandle* ih, int *border, int *caption, int *menu)
 {
+	// TODO: these are placeholder values
+	if(border) *border = 0;
+	if(caption) *caption = 0;
+	if(menu) *menu = 0;
 }
 
 int iupdrvDialogSetPlacement(Ihandle* ih)

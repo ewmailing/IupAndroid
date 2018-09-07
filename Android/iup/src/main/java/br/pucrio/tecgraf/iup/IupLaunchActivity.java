@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.os.Bundle;
 //import android.content.res.AssetManager;
@@ -20,7 +21,7 @@ import android.content.Intent;
 
 
 
-public class IupLaunchActivity extends Activity
+public class IupLaunchActivity extends AppCompatActivity
 {
 
     /**

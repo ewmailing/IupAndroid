@@ -1,6 +1,9 @@
 package br.pucrio.tecgraf.iup;
 
 import android.graphics.Bitmap;
+import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import java.lang.Object;
 import android.content.Context;
@@ -19,8 +22,24 @@ public final class IupLabelHelper
 	// value must be final in order to access in inner class
 	public static TextView createLabelText(final long ihandle_ptr)
 	{
-		Context context = (Context)IupApplication.getIupApplication();
-		TextView text_view = new TextView(context);
+		//Context context = (Context)IupApplication.getIupApplication();
+		// I discovered the hard way that passing the application context to the EditView or AppCompatEditView
+		// does not apply the theme.
+		// In my isolated cases, passing the Activity context instead of the Application context avoids the problem.
+		// However, because Android defers the creation of the Activity to some time later,
+		// and Iup's routines need to keep chugging along in one uninterrupted stream,
+		// I don't have the Activity to pass at this point.
+		// (I tried startActivity in AsyncTask, but the onCreate still gets deferred, even if I sleep.)
+		// Fortunately, ContextThemeWrapper will let us grab the theme.
+		// TODO: Is the hardcoded R.style.AppTheme going to be a problem for people who want to customize their themes?
+		// Maybe we make this a string we can read?
+		// The other more complicated idea I had was to keep a list with the temporary ViewGroup,
+		// and whenever a widget gets added that needs a proper theme, we add to the list so when the we finally get the Activity,
+		// we can go through the list and create/copy/replace/destroy the widgets with a newly created copy with the Activity as the context.
+		// That will be painful, so I'm glad we can do this.
+		//ContextThemeWrapper theme_context = new ContextThemeWrapper(context, R.style.AppTheme);
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+		TextView text_view = new AppCompatTextView(theme_context);
 
 		/*
 //		String attrib_string = IupCommon.iupAttribGet(ihandle_ptr, "TITLE");
@@ -52,8 +71,9 @@ public final class IupLabelHelper
 
 	public static ImageView createLabelImage(final long ihandle_ptr)
 	{
-		Context context = (Context)IupApplication.getIupApplication();
-		ImageView image_view = new ImageView(context);
+//		Context context = (Context)IupApplication.getIupApplication();
+		ContextThemeWrapper theme_context = IupCommon.getContextThemeWrapper();
+		ImageView image_view = new ImageView(theme_context);
 		image_view.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 //		image_view.setScaleType(ImageView.ScaleType.FIT_CENTER);
 		image_view.setAdjustViewBounds(true);

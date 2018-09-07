@@ -36,7 +36,9 @@ ext {
 	versionCode = 1
 	versionName = "1.0"
 	abiFilters = fetchAbiFilters()
-	appCompat = 'com.android.support:appcompat-v7:26.1.0' // Note: This version must be in sync with the targetSdkVersion
+	appCompat = 'com.android.support:appcompat-v7:27.1.1' // Note: This version must be in sync with the targetSdkVersion
+//	constraintSupport = 'com.android.support.constraint:constraint-layout:1.1.3'
+	designSupport = 'com.android.support:design:27.1.1'
 }
 
 
