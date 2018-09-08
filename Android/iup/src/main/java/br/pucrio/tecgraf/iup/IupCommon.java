@@ -166,6 +166,8 @@ View child_view = null;
 			Log.d("Java IupCommon setWidgetPosition", "child_view class name is: " + the_view.getClass().getName());
 			Log.d("Java IupCommon setWidgetPosition", "old leftMargin: " + layout_params.leftMargin);
 			Log.d("Java IupCommon setWidgetPosition", "old topMargin: " + layout_params.topMargin);
+			Log.d("Java IupCommon setWidgetPosition", "old width: " + layout_params.width);
+			Log.d("Java IupCommon setWidgetPosition", "old height: " + layout_params.height);
 			Log.d("Java IupCommon setWidgetPosition", "x: " + x + " y: " + y);
 			Log.d("Java IupCommon setWidgetPosition", "w: " + width + " h: " + height);
 
@@ -175,7 +177,9 @@ View child_view = null;
 			layout_params.width = width;
 			layout_params.height = height;
 
-
+			// BUG: Seems like I must re-set the layout_params because when I didn't do this, ProgressBar did not correctly resize when going from Portrait to Landscape.
+			// Other things seemed to work and Landscape to Portrait worked with ProgressBar.
+			the_view.setLayoutParams(layout_params);
 
 
 		}
@@ -183,8 +187,16 @@ View child_view = null;
 		{
 			Log.e("Java IupCommon setWidgetPosition", "the_widget is unsupported type");
 		}
-
-
+/*
+		{
+			View the_view = (View)the_widget;
+			RelativeLayout.LayoutParams layout_params = (RelativeLayout.LayoutParams)the_view.getLayoutParams();
+			Log.d("Java IupCommon setWidgetPosition", "new leftMargin: " + layout_params.leftMargin);
+			Log.d("Java IupCommon setWidgetPosition", "new topMargin: " + layout_params.topMargin);
+			Log.d("Java IupCommon setWidgetPosition", "new width: " + layout_params.width);
+			Log.d("Java IupCommon setWidgetPosition", "new height: " + layout_params.height);
+		}
+*/
 	}
 
 //	@FastNative
