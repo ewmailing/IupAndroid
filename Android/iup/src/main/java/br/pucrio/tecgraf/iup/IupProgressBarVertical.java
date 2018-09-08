@@ -21,13 +21,13 @@ import br.pucrio.tecgraf.iup.IupCommon;
 public class IupProgressBarVertical extends ProgressBar
 {
     private int x, y, z, w;
-
+/*
     @Override
     protected void drawableStateChanged() {
         // TODO Auto-generated method stub
         super.drawableStateChanged();
     }
-
+*/
     public IupProgressBarVertical(Context context) {
         super(context);
     }
@@ -62,6 +62,8 @@ public class IupProgressBarVertical extends ProgressBar
         super.onDraw(c);
     }
 
+    // EW: This appears to be if you want to change the value by touching the bar. We don't need this.
+/*
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!isEnabled()) {
@@ -90,7 +92,11 @@ public class IupProgressBarVertical extends ProgressBar
         }
         return true;
     }
-
+*/
+    // EW: The bounds checks are incorrect in API 26+ because ranges may be changed.
+    // I'm not convinced the onSizeChanged() call is needed from my testing.
+    // So I'm just disabling the whole thing for now.
+/*
     @Override
     public synchronized void setProgress(int progress) {
 
@@ -102,5 +108,6 @@ public class IupProgressBarVertical extends ProgressBar
         onSizeChanged(x, y, z, w);
 
     }
+*/
 }
 
