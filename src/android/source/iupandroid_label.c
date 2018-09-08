@@ -32,8 +32,7 @@
 #include "iupandroid_jnimacros.h"
 #include "iupandroid_jnicacheglobals.h"
 
-//IUPJNI_DECLARE_CLASS_STATIC(IupLabelHelper);
-static jobject g_javaClassIupLabelHelper = NULL;
+IUPJNI_DECLARE_CLASS_STATIC(IupLabelHelper);
 
 typedef enum
 {
@@ -90,8 +89,7 @@ static int androidLabelSetTitleAttrib(Ihandle* ih, const char* value)
 {
 	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_setText);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-//	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
-	jclass java_class =  (jobject)((*jni_env)->NewLocalRef(jni_env, g_javaClassIupLabelHelper));
+	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
 
 	jmethodID method_id = NULL;
 	char* attribute_value = NULL;
@@ -260,10 +258,7 @@ static int androidLabelMapMethod(Ihandle* ih)
 	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_createLabelText);
 	IUPJNI_DECLARE_METHOD_ID_STATIC(IupLabelHelper_createLabelImage);
 	JNIEnv* jni_env = iupAndroid_GetEnvThreadSafe();
-//	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
-	jclass java_class = (*jni_env)->FindClass(jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
-	g_javaClassIupLabelHelper = (jobject)((*jni_env)->NewGlobalRef(jni_env, java_class));
-//	jclass java_class2 =  (jobject)((*jni_env)->NewLocalRef(jni_env, g_javaClassIupLabelHelper));
+	jclass java_class = IUPJNI_FindClass(IupLabelHelper, jni_env, "br/pucrio/tecgraf/iup/IupLabelHelper");
 
 	jmethodID method_id = NULL;
 //	char* attribute_value = NULL;
