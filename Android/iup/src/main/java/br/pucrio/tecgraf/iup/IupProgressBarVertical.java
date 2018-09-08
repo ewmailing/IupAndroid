@@ -1,7 +1,7 @@
 /*
  * This code is from
  * https://stackoverflow.com/a/9311020
- * Ramesh Akula
+ * Ramesh Akula https://stackoverflow.com/users/874752/ramesh-akula
  * Stack Overflow uses the Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) license. https://creativecommons.org/licenses/by-sa/3.0/
  */
 package br.pucrio.tecgraf.iup;
@@ -46,7 +46,7 @@ public class IupProgressBarVertical extends ProgressBar
         this.y = h;
         this.z = oldw;
         this.w = oldh;
-		invalidate();
+		invalidate(); // Oliver Jonas fix: https://stackoverflow.com/users/2097259/oliver-jonas
     }
 
     @Override
