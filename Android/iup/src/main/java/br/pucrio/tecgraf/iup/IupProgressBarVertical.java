@@ -2,7 +2,7 @@
  * This code is from
  * https://stackoverflow.com/a/9311020
  * Ramesh Akula
- * Stack Overflow uses the MIT and CC-BY-SA licenses.
+ * Stack Overflow uses the Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) license. https://creativecommons.org/licenses/by-sa/3.0/
  */
 package br.pucrio.tecgraf.iup;
 import java.lang.Object;
