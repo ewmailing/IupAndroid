@@ -21,7 +21,7 @@ public final class IupProgressBarHelper
 		// https://stackoverflow.com/a/9311020
 		if(is_vertical)
 		{
-			return null;
+			progress_bar = new IupProgressBarVertical(theme_context, null, android.R.attr.progressBarStyleHorizontal);
 		}
 		else
 		{
