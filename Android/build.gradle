@@ -11,7 +11,7 @@ buildscript {
 		google()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:3.1.2'
+		classpath 'com.android.tools.build:gradle:3.4.1'
 
 		// NOTE: Do not place your application dependencies here; they belong
 		// in the individual module build.gradle files
@@ -30,9 +30,9 @@ task clean(type: Delete) {
 }
 
 ext {
-	compileSdkVersion = 27
-	minSdkVersion = 14
-	targetSdkVersion = 27 // Make sure to update appCompat
+	compileSdkVersion = 28
+	minSdkVersion = 22
+	targetSdkVersion = 28 // Make sure to update appCompat
 	versionCode = 1
 	versionName = "1.0"
 	abiFilters = fetchAbiFilters()
